@@ -1,10 +1,21 @@
 <?php
-// Simple proxy script for Yahoo! Geocode API
-// Note: there is no error checking done on the input or return from Yahoo!
-// Takes either a free form 'location' variable or a set of variables
+/******************************************************************************
+* Simple proxy script for Yahoo! Geocode API
+* Note: there is no error checking done on the input or return from Yahoo!
+* Takes either a free form 'location' variable or a set of variables. Returns
+* a JSON structure
+* 
+* @copyright	2007 Ecotrust
+* @author		Tim Welch
+* @contact		twelch at ecotrust dot org
+******************************************************************************/
+
+ini_set("display_errors","2");
+ERROR_REPORTING(E_ALL);
+
 require_once("JSON.php");
 require_once('HttpRequest.php');
-header('Content-type: text/xml');
+header('Content-type: text/plain');
 
 $search_type = @$_REQUEST["search_type"];
 $full_address = @$_REQUEST["full_address"];

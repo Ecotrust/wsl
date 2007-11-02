@@ -1,7 +1,7 @@
 <?php
 
 //This class provides a workaround for servers without Curl or the use of fopen
-//to pull down content via a URL (like on Wanda with PHP 4.oldashell!!!)
+//to pull down content via a URL (like on Wanda with PHP 4.old.as.hell!!!)
 //Taken from http://www.hiveminds.co.uk/node/3198
 
 //$r = new HTTPRequest('http://www.php.net');
@@ -48,6 +48,7 @@ class HTTPRequest
    // download URL to string
    function DownloadToString()
    {
+   	   $response = "";
        $crlf = "\r\n";
        // generate request
        $req = 'GET ' . $this->_uri . ' HTTP/1.0' . $crlf

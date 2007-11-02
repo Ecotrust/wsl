@@ -22,6 +22,13 @@ function map_init() {
         }
     );
 
+	var ws_wms_lyr = new OpenLayers.Layer.WMS(
+		'Watershed', 
+		"http://pearl.ecotrust.org/cgi-bin/mapserv?\map=/var/www/html/apps/wls/wls.map", 
+		{layers: 'west_na_watersheds',transparent: 'true',format: 'image/gif'},
+		{isBaseLayer: false, opacity: 0.75} 
+	);
+
     // create WMS layer
     //var wms = new OpenLayers.Layer.WMS(
     //    "World Map",
@@ -38,14 +45,12 @@ function map_init() {
 	//	"http://labs.metacarta.com/wms/vmap0", 
 	//	{layers: 'basic'} );
 			
-	markers = new OpenLayers.Layer.Markers("Location");
-    //vector = new OpenLayers.Layer.Vector("Editable Vectors");
-    //map.addLayer(vector);	
-	
-	map.addLayers([gmap, markers]);
+	markers = new OpenLayers.Layer.Markers("Your Location");
+    ws_outl_lyr = new OpenLayers.Layer.Vector("Watershed Outlines");
+
+	map.addLayers([gmap, ws_outl_lyr, markers]);	
 	map.addControl(new OpenLayers.Control.LayerSwitcher());
-	map.addControl(new OpenLayers.Control.MousePosition());
-	//map.addControl(new OpenLayers.Control.EditingToolbar(vector));
+	//map.addControl(new OpenLayers.Control.EditingToolbar(ws_outl_lyr));
 	
 	//map.addControl(new OpenLayers.Control.PanZoomBar());	
 	//size = new OpenLayers.Size(10,17);
@@ -55,6 +60,8 @@ function map_init() {
 	//map.zoomToMaxExtent()
 	map.setCenter(new OpenLayers.LonLat(-14255200,6600000), 4);
 	//map.zoomTo(4);
+	
+	wkt = new OpenLayers.Format.WKT();
 }
 
 //Wrong way to use a google base layer, cannot do vector drawing correctly.  From examples/google.html
@@ -119,12 +126,13 @@ function handle_new_feature(feature) {
 function initial_search(search_form, search_type) {
 	//Clear any markers on map
 	clear_markers();
-	
+	ws_outl_lyr.destroyFeatures();
+	cur_huc_level = 5;
+
 	if (search_type == 'full' || search_type == 'detail') { 
 		geocoder.geocode(search_type, search_form, process_search);
 	} else if (search_type == 'ws_name') {
 		var name = $('ws_name').value;
-		level = 6;
 		if (name != 'Select One') {
 			get_ws_by_name(name, load_ws_results);
 		} else {
@@ -141,19 +149,12 @@ function process_search(geo_result) {
 	} else if (num_locations > 1) {
 		//Too many results
 		var div = $('loc_select');
-		console.log("multiple results");
 		location_selector = new LocationSelector();
 		EventController.addEventListener("LocSelectEvent", location_search);
 		location_selector.load_dialog(geo_result);
 	} else {
 		loc = geo_result.locations[0];
-		console.log(loc);
-		var lng = loc.lng;
-		var lat = loc.lat;
-
-		//Create location marker on map
-		var loc_html = loc.address+"<br/>"+loc.city+", "+loc.state+", "+loc.zip+" "+loc.country;
-		create_loc_marker(lng, lat, loc_html);
+		create_loc_marker(loc);
 		
 		//Complete location search
 		location_search(loc);
@@ -162,10 +163,15 @@ function process_search(geo_result) {
 
 //Search for watershed given GeocoderLocation.
 //Called via LocSelectEvent
-function location_search(evt) {
-	var location_result = evt.data;
-	var lat = location_result.getLat();
-	var lng = location_result.getLng();
+function location_search(loc) {
+	var lat = loc.getLat();
+	var lng = loc.getLng();
+	
+	if (markers.markers.length > 1) {
+		clear_markers();
+		create_loc_marker(loc);
+	}
+	
 	get_ws_by_location(lng, lat);
 }
 
@@ -176,13 +182,54 @@ function get_ws_by_name(name) {
 
 //Query watershed data given a point location
 function get_ws_by_location(lng, lat) {
-	console.log(lng);
-	console.log(lat);
+    request = new OpenLayers.Ajax.Request('php/remote_proxy.php',
+    {
+            parameters: 'action=get&func=get_ws_by_location&lng='+lng+'&lat='+lat,
+            method: 'get',
+            onSuccess: load_ws_results,
+            onFailure: alert_fail
+    });
+
+}
+
+function alert_fail(response) {
+	alert("Request failed: "+response);
 }
 
 //Process watershed query results, drawing polygon and loading tabular data
-function load_ws_results(ws_results) {
+function load_ws_results(transport) {
+	var response = transport.responseText;
+	var ws_results = parseJSON(response);
 	
+	var ws1 = ws_results[0];
+	console.log(ws1);
+	
+	//Draw watershed polygon
+	var ws_vector_wkt = ws1.the_geom;	
+	var ws_vector = wkt.read(ws_vector_wkt);
+	ws_vector.style = {fillColor: "#ee9900", fillOpacity: 0.4, strokeColor: 'black', strokeWidth: 1}; 
+	ws_outl_lyr.addFeatures([ws_vector]);
+
+	//Zoom to watershed polygon
+	var bounds = new OpenLayers.Bounds(ws1.left, ws1.bottom, ws1.right, ws1.top);
+	map.zoomToExtent(bounds);
+	
+	//Load watershed data
+	var ws_name, ws_acres, ws_area, ws_states = "";
+	switch (cur_huc_level) {
+		case 5:
+			ws_name = ws1.subwat_nam;
+			ws_acres = ws1.acres;
+			ws_area = ws1.area;
+			ws_states = ws1.states;
+			break;
+	}
+	var ws_html = "<table><tr><td align='right'><b>Name:</b></td><td>"+ws_name+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Acres:</b></td><td>"+ws_acres+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Area:</b></td><td>"+ws_area+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>States Overlapped:</b></td><td>"+ws_states+"</td></tr>";
+	ws_html += "</table>";
+	$('watershed_stats').update(ws_html);
 }
 
 function load_map_results(search_results) {
@@ -194,7 +241,13 @@ function load_map_results(search_results) {
 	}
 }
 
-function create_loc_marker(lng, lat, html) {
+function create_loc_marker(loc) {
+	var lng = loc.lng;
+	var lat = loc.lat;
+
+	//Create location marker on map
+	var html = loc.address+"<br/>"+loc.city+", "+loc.state+", "+loc.zip+" "+loc.country;
+
 	//Convert wgs84 to mercator meters
 	var lonlat = sphere_to_merc(lng,lat);
 	//var lonlat = new OpenLayers.LonLat(lng,lat);
@@ -218,6 +271,7 @@ function sphere_to_merc(lng, lat) {
 
 
 function zoom_to(lng, lat, zoom_level) {
+	//var lnglat = new OpenLayers.LonLat(lng,lat);
 	var lnglat = sphere_to_merc(lng, lat);
 	map.setCenter(lnglat, zoom_level);
 }
@@ -303,8 +357,8 @@ LocationSelector.prototype.load_dialog = function (georesult) {
 		sel_html += "</tr>";
 
 		//Add marker
-		var marker_html = address+"<br/>"+city+", "+state+", "+zip+" "+country;
-		create_loc_marker(lng, lat, marker_html);
+		//var marker_html = address+"<br/>"+city+", "+state+", "+zip+" "+country;
+		create_loc_marker(loc);
 	}
 	sel_html += "</table>";
 	
@@ -313,10 +367,7 @@ LocationSelector.prototype.load_dialog = function (georesult) {
 	
 	//Load with location choices
 	win.getContent().innerHTML= "<div style='padding:10px'>"+sel_html+"</div>";
-	
-	win.showCenter();
-	
-	//Load location choices onto map
+	win.showCenter();	
 }
 
 LocationSelector.prototype.select = function (location_num) {

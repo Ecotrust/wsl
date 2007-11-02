@@ -23,7 +23,12 @@ CustomEvent.EventController.prototype = {
 	dispatchEvent: function(n, e){
 		for(var x=0; x<this.listeners.length; x++){
 			if(this.listeners[x].name == n){
-				this.listeners[x].callback(e);
+				//Pass the data itself if it exists, otherwise the event object
+				if (e.data) {
+					this.listeners[x].callback(e.data);
+				} else {
+					this.listeners[x].callback(e);
+				}
 			}
 		}
 	}
@@ -33,6 +38,7 @@ var EventController = new CustomEvent.EventController();
 /************************** Create custom events *****************************/
 
 // Location selection event. Used after user selects from multiple geocoder results
+
 CustomEvent.Events.LocSelectEvent = Class.create();
 CustomEvent.Events.LocSelectEvent.prototype = {
 	//Expects a GeocoderLocation object
