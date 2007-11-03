@@ -22,12 +22,22 @@ function map_init() {
         }
     );
 
-	var ws_wms_lyr = new OpenLayers.Layer.WMS(
+	ws_wms_lyr = new OpenLayers.Layer.WMS(
 		'Watershed', 
-		"http://pearl.ecotrust.org/cgi-bin/mapserv?\map=/var/www/html/apps/wls/wls.map", 
-		{layers: 'west_na_watersheds',transparent: 'true',format: 'image/gif'},
-		{isBaseLayer: false, opacity: 0.75} 
+		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
+		{
+			layers: 'west_na_watersheds',
+			transparent: 'true',
+			format: 'image/gif',
+			srs: 'epsg:900913',
+			bbox: '-14000000,4000000,-11500000,6500000',
+			point_loc_wkt: point_loc_wkt
+		},
+		{
+			isBaseLayer: false, 
+			opacity: 0.5} 
 	);
+	ws_wms_lyr.setVisibility(false);
 
     // create WMS layer
     //var wms = new OpenLayers.Layer.WMS(
@@ -48,7 +58,7 @@ function map_init() {
 	markers = new OpenLayers.Layer.Markers("Your Location");
     ws_outl_lyr = new OpenLayers.Layer.Vector("Watershed Outlines");
 
-	map.addLayers([gmap, ws_outl_lyr, markers]);	
+	map.addLayers([gmap, ws_outl_lyr, ws_wms_lyr, markers]);	
 	map.addControl(new OpenLayers.Control.LayerSwitcher());
 	//map.addControl(new OpenLayers.Control.EditingToolbar(ws_outl_lyr));
 	
@@ -172,6 +182,15 @@ function location_search(loc) {
 		create_loc_marker(loc);
 	}
 	
+	the_pt = new OpenLayers.Geometry.Point(lng, lat);
+    the_pt = new OpenLayers.Feature.Vector(the_pt);
+	point_loc_wkt = wkt.write(the_pt);
+
+	//Watershed WMS Layer
+	ws_wms_lyr.mergeNewParams({point_loc_wkt: point_loc_wkt});
+	ws_wms_lyr.setVisibility(true);
+	console.log(ws_wms_lyr);
+
 	get_ws_by_location(lng, lat);
 }
 
@@ -205,10 +224,10 @@ function load_ws_results(transport) {
 	console.log(ws1);
 	
 	//Draw watershed polygon
-	var ws_vector_wkt = ws1.the_geom;	
-	var ws_vector = wkt.read(ws_vector_wkt);
-	ws_vector.style = {fillColor: "#ee9900", fillOpacity: 0.4, strokeColor: 'black', strokeWidth: 1}; 
-	ws_outl_lyr.addFeatures([ws_vector]);
+	//var ws_vector_wkt = ws1.the_geom;	
+	//var ws_vector = wkt.read(ws_vector_wkt);
+	//ws_vector.style = {fillColor: "#ee9900", fillOpacity: 0.4, strokeColor: 'black', strokeWidth: 1}; 
+	//ws_outl_lyr.addFeatures([ws_vector]);
 
 	//Zoom to watershed polygon
 	var bounds = new OpenLayers.Bounds(ws1.left, ws1.bottom, ws1.right, ws1.top);

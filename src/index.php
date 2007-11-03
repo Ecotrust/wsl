@@ -31,7 +31,7 @@ subwat_name?><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 	<script src="js/window_effects.js"> </script>
 	<!-- Prototype custom event handler add-on like QT signals/slots mechanism -->
 	<script src="js/CustomEvents.js"> </script>
-	    <script type="text/javascript">        <!--        //Global JS variables        var map, gmap, geocoder, markers, current_popup, size, offset, alertWin, wkt, ws_vector, cur_huc_level = null;
+	    <script type="text/javascript">        <!--        //Global JS variables        var map, gmap, geocoder, markers, current_popup, size, offset, alertWin, wkt, ws_vector, cur_huc_level, point_loc_wkt, ws_wms_lyr = null;
 		// avoid pink tiles
 		OpenLayers.IMAGE_RELOAD_ATTEMPTS = 3;
 		OpenLayers.Util.onImageLoadErrorColor = "transparent";
