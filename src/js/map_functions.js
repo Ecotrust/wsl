@@ -16,107 +16,134 @@ function map_init() {
     var gmap = new OpenLayers.Layer.Google(
         "Google Hybrid",
         {
-        	type: G_HYBRID_MAP, 
+ 
         	'maxZoomLevel':18, 
         	'sphericalMercator': true
         }
     );
 
-	ws_wms_lyr = new OpenLayers.Layer.WMS(
-		'Watershed', 
+	ws_1_wms_lyr = new OpenLayers.Layer.WMS(
+		'1st Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'west_na_watersheds',
+			layers: 'us_1st_field',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
-			bbox: '-14000000,4000000,-11500000,6500000',
+			bbox: '-20010000,1300000,-11500000,1155000',
 			point_loc_wkt: point_loc_wkt
 		},
 		{
 			isBaseLayer: false, 
 			opacity: 0.5} 
 	);
-	ws_wms_lyr.setVisibility(false);
+	ws_1_wms_lyr.setVisibility(false);
+	ws_1_wms_lyr.displayInLayerSwitcher = false;
+	ws_layers[1] = ws_1_wms_lyr;
 
-    // create WMS layer
-    //var wms = new OpenLayers.Layer.WMS(
-    //    "World Map",
-    //    "http://world.freemap.in/tiles/",
-    //    {'layers': 'factbook-overlay', 'format':'png'},
-    //    {
-    //        'opacity': 0.4,
-    //        'isBaseLayer': false,'wrapDateLine': true
-    //    }
-    //);
+	ws_2_wms_lyr = new OpenLayers.Layer.WMS(
+		'2nd Field Watershed', 
+		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
+		{
+			layers: 'us_2nd_field',
+			transparent: 'true',
+			format: 'image/gif',
+			srs: 'epsg:900913',
+			bbox: '-20020000,2300000,-11500000,1155000',
+			point_loc_wkt: point_loc_wkt
+		},
+		{
+			isBaseLayer: false, 
+			opacity: 0.5} 
+	);
+	ws_2_wms_lyr.setVisibility(false);
+	ws_2_wms_lyr.displayInLayerSwitcher = false;
+	ws_layers[2] = ws_2_wms_lyr;
 
-	//var base_map = new OpenLayers.Layer.WMS(
-	//	"OpenLayers WMS", 
-	//	"http://labs.metacarta.com/wms/vmap0", 
-	//	{layers: 'basic'} );
+	ws_3_wms_lyr = new OpenLayers.Layer.WMS(
+		'3rd Field Watershed', 
+		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
+		{
+			layers: 'us_3rd_field',
+			transparent: 'true',
+			format: 'image/gif',
+			srs: 'epsg:900913',
+			bbox: '-20030000,3300000,-11500000,1155000',
+			point_loc_wkt: point_loc_wkt
+		},
+		{
+			isBaseLayer: false, 
+			opacity: 0.5} 
+	);
+	ws_3_wms_lyr.setVisibility(false);
+	ws_3_wms_lyr.displayInLayerSwitcher = false;
+	ws_layers[3] = ws_3_wms_lyr;
+
+	ws_4_wms_lyr = new OpenLayers.Layer.WMS(
+		'4th Field Watershed', 
+		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
+		{
+			layers: 'us_4th_field',
+			transparent: 'true',
+			format: 'image/gif',
+			srs: 'epsg:900913',
+			bbox: '-20040000,4300000,-11500000,1155000',
+			point_loc_wkt: point_loc_wkt
+		},
+		{
+			isBaseLayer: false, 
+			opacity: 0.5} 
+	);
+	ws_4_wms_lyr.setVisibility(false);
+	ws_4_wms_lyr.displayInLayerSwitcher = false;
+	ws_layers[4] = ws_4_wms_lyr; 
+
+	ws_5_wms_lyr = new OpenLayers.Layer.WMS(
+		'5th Field Watershed', 
+		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
+		{
+			layers: 'us_5th_field',
+			transparent: 'true',
+			format: 'image/gif',
+			srs: 'epsg:900913',
+			bbox: '-20040000,4300000,-11500000,1155000',
+			point_loc_wkt: point_loc_wkt
+		},
+		{
+			isBaseLayer: false, 
+			opacity: 0.5} 
+	);
+	ws_5_wms_lyr.setVisibility(false);
+	ws_5_wms_lyr.displayInLayerSwitcher = true;
+	ws_layers[5] = ws_5_wms_lyr;
+
+	ws_6_wms_lyr = new OpenLayers.Layer.WMS(
+		'6th Field Watershed', 
+		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
+		{
+			layers: 'us_6th_field',
+			transparent: 'true',
+			format: 'image/gif',
+			srs: 'epsg:900913',
+			bbox: '-20040000,4300000,-11500000,1155000',
+			point_loc_wkt: point_loc_wkt
+		},
+		{
+			isBaseLayer: false, 
+			opacity: 0.5} 
+	);
+	ws_6_wms_lyr.setVisibility(false);
+	ws_6_wms_lyr.displayInLayerSwitcher = false;
+	ws_layers[6] = ws_6_wms_lyr;
 			
 	markers = new OpenLayers.Layer.Markers("Your Location");
-    ws_outl_lyr = new OpenLayers.Layer.Vector("Watershed Outlines");
 
-	map.addLayers([gmap, ws_outl_lyr, ws_wms_lyr, markers]);	
-	map.addControl(new OpenLayers.Control.LayerSwitcher());
-	//map.addControl(new OpenLayers.Control.EditingToolbar(ws_outl_lyr));
-	
-	//map.addControl(new OpenLayers.Control.PanZoomBar());	
-	//size = new OpenLayers.Size(10,17);
-	//offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
-	//map.setCenter(new OpenLayers.LonLat(-117,43), 3);
-	
-	//map.zoomToMaxExtent()
-	map.setCenter(new OpenLayers.LonLat(-14255200,6600000), 4);
-	//map.zoomTo(4);
+	map.addLayers([gmap, ws_1_wms_lyr, ws_2_wms_lyr, ws_3_wms_lyr, ws_4_wms_lyr, ws_5_wms_lyr, ws_6_wms_lyr, markers]);
+	lyr_switcher = new OpenLayers.Control.LayerSwitcher();	
+	map.addControl(lyr_switcher);
+	map.setCenter(new OpenLayers.LonLat(-15791278,7703140), 3);
 	
 	wkt = new OpenLayers.Format.WKT();
-}
-
-//Wrong way to use a google base layer, cannot do vector drawing correctly.  From examples/google.html
-function map_init_old() {
-    map = new OpenLayers.Map( 
-    	'map', 
-    	{
-    		controls: [new OpenLayers.Control.MouseDefaults()], 
-    		'numZoomLevels':16
-    	}
-    );
-
-    var gmap = new OpenLayers.Layer.Google( "Google Hybrid" , {type: G_HYBRID_MAP, 'maxZoomLevel':16} );
-    map.addLayers([gmap]);
-    
-    layer = new OpenLayers.Layer.WMS( "OpenLayers WMS", 
-            "http://labs.metacarta.com/wms/vmap0", {layers: 'basic', 'transparent':true}, 
-              {isBaseLayer: false} );
-    layer.setVisibility(false);
-    
- 	var twms = new OpenLayers.Layer.WMS( 
- 		"World Map", 
- 		"http://world.freemap.in/cgi-bin/mapserv?", 
-        {
-			map: '/www/freemap.in/world/map/factbooktrans.map', transparent:'true',
-			layers: 'factbook', 'format':'png'
-        }, {
-        	'reproject': true
-		} 
-	);
-    map.addLayer(twms);
-    
-    markers = new OpenLayers.Layer.Markers("markers");
-    map.addLayer(markers);
-    
-    // create a vector layer for drawing
-    var vector = new OpenLayers.Layer.Vector("Editable Vectors");
-    map.addLayer(vector);
-
-    //map.setCenter(new OpenLayers.LonLat(10.205188,48.857593), 5);
-    map.setCenter(new OpenLayers.LonLat(-122,45), 5);
-    map.addControl( new OpenLayers.Control.LayerSwitcher() );
-    map.addControl( new OpenLayers.Control.PanZoomBar() );
-    map.addControl( new OpenLayers.Control.MousePosition() );
-    map.addControl(new OpenLayers.Control.EditingToolbar(vector));
 }
 
 function handle_new_feature(feature) {
@@ -136,8 +163,8 @@ function handle_new_feature(feature) {
 function initial_search(search_form, search_type) {
 	//Clear any markers on map
 	clear_markers();
-	ws_outl_lyr.destroyFeatures();
 	cur_huc_level = 5;
+//	change_ws_level(cur_huc_level);
 
 	if (search_type == 'full' || search_type == 'detail') { 
 		geocoder.geocode(search_type, search_form, process_search);
@@ -186,10 +213,20 @@ function location_search(loc) {
     the_pt = new OpenLayers.Feature.Vector(the_pt);
 	point_loc_wkt = wkt.write(the_pt);
 
-	//Watershed WMS Layer
-	ws_wms_lyr.mergeNewParams({point_loc_wkt: point_loc_wkt});
-	ws_wms_lyr.setVisibility(true);
-	console.log(ws_wms_lyr);
+	//Merge location param into WMS layer to be passed with request to server
+	//ws_1_wms_lyr.mergeNewParams({point_loc_wkt: point_loc_wkt});
+	//ws_2_wms_lyr.mergeNewParams({point_loc_wkt: point_loc_wkt});
+	//ws_3_wms_lyr.mergeNewParams({point_loc_wkt: point_loc_wkt});
+	//ws_4_wms_lyr.mergeNewParams({point_loc_wkt: point_loc_wkt});
+	//ws_5_wms_lyr.mergeNewParams({point_loc_wkt: point_loc_wkt});
+	//ws_6_wms_lyr.mergeNewParams({point_loc_wkt: point_loc_wkt});
+
+	update_wms(ws_layers[cur_huc_level]);
+
+	//Turn on current layer
+	change_ws_level(cur_huc_level);
+	//ws_layers[cur_huc_level].setVisibility(true);
+	//ws_layers[cur_huc_level].displayInLayerSwitcher = true;
 
 	get_ws_by_location(lng, lat);
 }
@@ -203,7 +240,7 @@ function get_ws_by_name(name) {
 function get_ws_by_location(lng, lat) {
     request = new OpenLayers.Ajax.Request('php/remote_proxy.php',
     {
-            parameters: 'action=get&func=get_ws_by_location&lng='+lng+'&lat='+lat,
+            parameters: 'action=get&func=get_all_ws_data_by_location&lng='+lng+'&lat='+lat+'&level='+cur_huc_level,
             method: 'get',
             onSuccess: load_ws_results,
             onFailure: alert_fail
@@ -218,37 +255,105 @@ function alert_fail(response) {
 //Process watershed query results, drawing polygon and loading tabular data
 function load_ws_results(transport) {
 	var response = transport.responseText;
-	var ws_results = parseJSON(response);
+	ws_data = parseJSON(response);
+	console.log(ws_data);
 	
-	var ws1 = ws_results[0];
-	console.log(ws1);
+	//pull names into one field called 'name'
+	for (var i=1; i<=num_levels; i++) {
+		switch (i) {
+			case 1: 
+				ws_data[1].name = ws_data[1].reg_n; 
+				break;
+			case 2: 
+				ws_data[2].name = ws_data[2].subr_n; 
+				break;
+			case 3: 
+				ws_data[3].name = ws_data[3].bas_n; 
+				break;
+			case 4: 
+				ws_data[4].name = ws_data[4].subb_n; 
+				break;
+			case 5: 
+				ws_data[5].name = ws_data[5].wat_n; 
+				break;
+			case 6: 
+				ws_data[6].name = ws_data[6].subw_n; 
+				break;
+		}
+	}
 	
-	//Draw watershed polygon
-	//var ws_vector_wkt = ws1.the_geom;	
-	//var ws_vector = wkt.read(ws_vector_wkt);
-	//ws_vector.style = {fillColor: "#ee9900", fillOpacity: 0.4, strokeColor: 'black', strokeWidth: 1}; 
-	//ws_outl_lyr.addFeatures([ws_vector]);
+	var cur_ws_data = ws_data[cur_huc_level];
+	var ws_html = gen_ws_stats_html(cur_ws_data);
+	$('ws_stats_content').update(ws_html);
+
+	//Build watershed 'ladder' for current location
+	var ws_ladder_html = "<table id='ws_ladder_table'><tr><th>Level</th><th>Name</th><th></th></tr>";
+	for (var i=1; i<=num_levels; i++) {
+		if (ws_data[i]) {
+			ws_ladder_html += "<tr align='center'><td>"+i+"</td><td>"+ws_data[i].name+"</td><td><input type='button' value='Go To' onclick='level_change_event("+ws_data[i].level+")'></td></tr>";
+		}
+	}
+	ws_ladder_html += "</table>";
+	$('ws_ladder_content').update(ws_ladder_html);
 
 	//Zoom to watershed polygon
-	var bounds = new OpenLayers.Bounds(ws1.left, ws1.bottom, ws1.right, ws1.top);
-	map.zoomToExtent(bounds);
+	zoom_to_cur_ws();
+}
+
+function level_change_event(level) {
+	change_ws_level(level);
+	update_wms(ws_layers[cur_huc_level]); 
+	zoom_to_cur_ws(); 
+	update_stats();
+}
+
+function update_stats() {
+	//Update stats
+	var ws_html = gen_ws_stats_html(ws_data[cur_huc_level]);
+	$('ws_stats_content').update(ws_html);
+}
+
+function gen_ws_stats_html(ws_level_data) {
+	var ws_name, ws_leng, ws_area, ws_html = null;
+	ws_leng = parseFloat(ws_level_data.shape_leng).toFixed(3);	//3 decimal places
+	ws_area = parseFloat(ws_level_data.shape_area).toFixed(3);	//3 decimal places
 	
-	//Load watershed data
-	var ws_name, ws_acres, ws_area, ws_states = "";
-	switch (cur_huc_level) {
-		case 5:
-			ws_name = ws1.subwat_nam;
-			ws_acres = ws1.acres;
-			ws_area = ws1.area;
-			ws_states = ws1.states;
-			break;
-	}
-	var ws_html = "<table><tr><td align='right'><b>Name:</b></td><td>"+ws_name+"</td></tr>";
-	ws_html += "<tr><td align='right'><b>Acres:</b></td><td>"+ws_acres+"</td></tr>";
-	ws_html += "<tr><td align='right'><b>Area:</b></td><td>"+ws_area+"</td></tr>";
-	ws_html += "<tr><td align='right'><b>States Overlapped:</b></td><td>"+ws_states+"</td></tr>";
-	ws_html += "</table>";
-	$('watershed_stats').update(ws_html);
+	//Put together current ws level stats
+	ws_html = "<table id='ws_stats_table'><tr><td align='right'><b>Name:</b></td><td>"+ws_level_data.name+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Level:</b></td><td>"+ws_level_data.level+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Perimeter:</b></td><td>"+ws_leng+" miles</td></tr>";
+	ws_html += "<tr><td align='right'><b>Area:</b></td><td>"+ws_area+" sq. miles</td></tr>";
+	ws_html += "</table>";	
+	return ws_html;
+}
+
+function zoom_to_cur_ws() {
+	ws_level_data = ws_data[cur_huc_level];
+	//Zoom to watershed polygon
+	var bounds = new OpenLayers.Bounds(ws_level_data.left, ws_level_data.bottom, ws_level_data.right, ws_level_data.top);
+	map.zoomToExtent(bounds);
+}
+
+function update_wms(layer) {
+	layer.mergeNewParams({point_loc_wkt: point_loc_wkt});
+}
+
+function change_ws_level(new_level) {
+	//Turn off current layer
+	ws_layers[cur_huc_level].setVisibility(false);
+	ws_layers[cur_huc_level].displayInLayerSwitcher = false;
+
+	//Update level
+	cur_huc_level = new_level;
+
+	//Turn on new layer
+	ws_layers[cur_huc_level].setVisibility(true);
+	ws_layers[cur_huc_level].displayInLayerSwitcher = true;
+
+	//Update layer switcher
+	map.removeControl(lyr_switcher);
+	lyr_switcher = new OpenLayers.Control.LayerSwitcher();
+	map.addControl(lyr_switcher);
 }
 
 function load_map_results(search_results) {

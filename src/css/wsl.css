@@ -1,24 +1,1 @@
-@CHARSET "ISO-8859-1";
-
-#map {
-	width: 400px;
-	height: 400px;
-	border: 2px solid #406679;
-}
-
-#watershed_data {
-	border: 1px solid #406679; 
-	height: 200px; 
-	padding: 4px;'
-}
-
-#huc_data {
-	border: 1px solid #406679;
-	height: 200px;
-	padding: 4px;
-}
-
-#large_form_container {
-	border: 2px solid #406679;
-	padding: 4px;
-}
+@CHARSET "ISO-8859-1";h1 { font-size: 1.8em; margin:0; }h2 { font-size: 1.6em; margin: 0 0 0.5em 0; }h3 { font-size: 1.4em; margin: 0 0 0.5em 0; }h4 { font-size: 1.2em; margin: 0 0 0.5em 0; }th { font-size: 0.8em; background-color: #fff5e3 }#large_form_container {	border: 2px solid #406679;	padding: 8px;	height: 500px;	-moz-border-radius: 4px;}#map {	width: 500px;	height: 500px;	border: 2px solid #406679;	-moz-border-radius: 4px;}#ws_stats {	border: 2px solid #406679; 	height: 220px; 	padding: 8px;	vertical-align: top;	-moz-border-radius: 4px;}#ws_stats_table {	border: 1px solid #406679;	width: 100%;}#ws_ladder {	border: 2px solid #406679;	height: 220px;	padding: 8px;	vertical-align: top;	-moz-border-radius: 4px;}#ws_ladder_table {	border-collapse:collapse;	width: 100%;}#ws_ladder_table td, th {	border: 1px solid #406679;	padding: 4px;}
