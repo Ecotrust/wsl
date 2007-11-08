@@ -38,12 +38,20 @@ var EventController = new CustomEvent.EventController();
 /************************** Create custom events *****************************/
 
 // Location selection event. Used after user selects from multiple geocoder results
-
 CustomEvent.Events.LocSelectEvent = Class.create();
 CustomEvent.Events.LocSelectEvent.prototype = {
 	//Expects a GeocoderLocation object
 	initialize : function(location){
 		this.type = "CustomEvent.Events.LocSelectEvent";
 		this.data = location;
+	}
+};
+
+// Geocode return event. data param expected to be a GeocoderResult
+CustomEvent.Events.GeocodeReturnEvent = Class.create();
+CustomEvent.Events.GeocodeReturnEvent.prototype = {
+	initialize : function(data){
+		this.type = "CustomEvent.Events.GeocodeReturnEvent";
+		this.data = data;
 	}
 };

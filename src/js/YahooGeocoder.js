@@ -5,9 +5,9 @@ function YahooGeocoder() {
 	}
 }
 
-YahooGeocoder.prototype.geocode = function(search_type, search_form_name, callback) {
+YahooGeocoder.prototype.geocode = function(search_type, search_form_name) {
 	//Serialize search form and send geocode request to proxy script
-	this.result_callback = callback;
+	//this.result_callback = callback;
 	var params = $(search_form_name).serialize();
 	params += '&search_type='+escape(search_type);
 	request = new OpenLayers.Ajax.Request('php/yahoo_proxy.php', 
@@ -34,7 +34,8 @@ YahooGeocoder.prototype.process_result = function(transport) {
 	//Verify there is a result
 	if (!result_obj) {
 		geo_result.setSuccess(false);
-		this.result_callback(geo_result);
+		EventController.dispatchEvent("GeocodeReturnEvent", new CustomEvent.Events.LocSelectEvent(geo_result));
+		//this.result_callback(geo_result);
 		return;
 	} else {
 		geo_result.setSuccess(true);
@@ -68,6 +69,6 @@ YahooGeocoder.prototype.process_result = function(transport) {
                                lng: result.Longitude,
                                id: 1});                         
 	}
-		
-	this.result_callback(geo_result);
+	EventController.dispatchEvent("GeocodeReturnEvent", new CustomEvent.Events.LocSelectEvent(geo_result));
+	//this.result_callback(geo_result);
 }
