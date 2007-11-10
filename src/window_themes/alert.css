@@ -108,12 +108,9 @@
 }
 
 .alert_progress {
-	float:left;
-	margin:auto;
-	text-align:center;
-	width:100%;
-	height:16px;
-	background: #FFF url('alert/progress.gif') no-repeat center center
+	width:25px;
+	height:25px;
+	background: #FFF url('alert/progress3.gif') no-repeat center center
 }
 
 

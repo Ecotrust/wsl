@@ -21,7 +21,6 @@ ERROR_REPORTING(E_ALL);
 $URL = "http://pearl.ecotrust.org/apps/wsl/watershed_query.php";
 if (@$_SERVER["QUERY_STRING"])
 	$URL .= "?".$_SERVER["QUERY_STRING"];
-
 //Query the remote server
 $r = new HTTPRequest($URL);
 
