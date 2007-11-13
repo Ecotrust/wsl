@@ -19,7 +19,7 @@ function WSLocator(){
 	this.us_ws_layer_nums = [0,1,2,3,4,5];
 	this.bc_ws_layer_nums = [6,7,8];
 	this.yukon_ws_layer_nums = [9,10];
-	this.default_us_order = [4,5,3,2,1,0];
+	this.default_us_order = [5,4,3,2,1,0];
 	this.default_bc_order = [8,7,6];
 	this.default_yukon_order = [10,9];
 	
@@ -77,10 +77,11 @@ WSLocator.prototype.map_init = function() {
 		'US 1st Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'us_1st_field',
+			layers: 'watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
+			table: 'us_1st_field',
 			bbox: null,
 			gid: null
 		},
@@ -94,10 +95,11 @@ WSLocator.prototype.map_init = function() {
 		'US 2nd Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'us_2nd_field',
+			layers: 'watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
+			table: 'us_2nd_field',
 			bbox: null,
 			gid: null
 		},
@@ -111,10 +113,11 @@ WSLocator.prototype.map_init = function() {
 		'US 3rd Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'us_3rd_field',
+			layers: 'watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
+			table: 'us_3rd_field',
 			bbox: null,
 			gid: null
 		},
@@ -128,10 +131,11 @@ WSLocator.prototype.map_init = function() {
 		'US 4th Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'us_4th_field',
+			layers: 'watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
+			table: 'us_4th_field',
 			bbox: null,
 			gid: null
 		},
@@ -145,10 +149,11 @@ WSLocator.prototype.map_init = function() {
 		'US 5th Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'us_5th_field',
+			layers: 'watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
+			table: 'us_5th_field',
 			bbox: null,
 			gid: null
 		},
@@ -162,10 +167,11 @@ WSLocator.prototype.map_init = function() {
 		'US 6th Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'us_6th_field',
+			layers: 'watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
+			table: 'us_6th_field',
 			bbox: null,
 			gid: null
 		},
@@ -180,10 +186,11 @@ WSLocator.prototype.map_init = function() {
 		'US 3rd Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'bc_3rd_field_equivalent',
+			layers: 'watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
+			table: 'bc_3rd_field_equivalent',
 			bbox: null,
 			gid: null
 		},
@@ -197,10 +204,11 @@ WSLocator.prototype.map_init = function() {
 		'BC (US 4th Field Equivalent) Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'bc_4th_field_equivalent',
+			layers: 'watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
+			table: 'bc_4th_field_equivalent',
 			bbox: null,
 			gid: null
 		},
@@ -214,10 +222,11 @@ WSLocator.prototype.map_init = function() {
 		'BC (US 6th Field Equivalent) Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'bc_6th_field_equivalent',
+			layers: 'watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
+			table: 'bc_6th_field_equivalent',
 			bbox: null,
 			gid: null
 		},
