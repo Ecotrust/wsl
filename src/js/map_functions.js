@@ -4,7 +4,7 @@
  * Manages OL map, watershed WMS layers and watershed data requests
 /***************************************************************************/
 function WSLocator(){
-	this.gmap = null;
+	this.bmap = null;
 	this.markers = null;
 	this.lyr_switcher = null;
 	this.ws_wms_lyr = null;
@@ -39,9 +39,6 @@ function WSLocator(){
 		me.marker_click(evt);
 	}
 	
-	this.load_win = new LoadWindow();
-	//this.load_win.set_msg_and_show("blort");
-	
 	EventController.addEventListener("GeocodeReturnEvent", this.start_process_search);
 }
 
@@ -58,7 +55,7 @@ WSLocator.prototype.map_init = function() {
     this.map = new OpenLayers.Map('map', this.options);
 
     //Google base map
-    this.gmap = new OpenLayers.Layer.Google(
+    this.bmap = new OpenLayers.Layer.Google(
         "Google Hybrid",
         {
  
@@ -67,8 +64,16 @@ WSLocator.prototype.map_init = function() {
         }
     );
 
+    // Yahoo base map
+//    this.bmap = new OpenLayers.Layer.Yahoo(
+//        "Base Map",
+//        {
+//        	'sphericalMercator': true
+//        }
+//    );
+
 	//US Watershed WMS layers
-	us_1_wms_lyr = new OpenLayers.Layer.WMS(
+	us_1_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
 		'US 1st Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
@@ -85,7 +90,7 @@ WSLocator.prototype.map_init = function() {
 	);
 	this.ws_layers[0] = us_1_wms_lyr;
 
-	us_2_wms_lyr = new OpenLayers.Layer.WMS(
+	us_2_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
 		'US 2nd Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
@@ -102,7 +107,7 @@ WSLocator.prototype.map_init = function() {
 	);
 	this.ws_layers[1] = us_2_wms_lyr;
 
-	us_3_wms_lyr = new OpenLayers.Layer.WMS(
+	us_3_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
 		'US 3rd Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
@@ -119,7 +124,7 @@ WSLocator.prototype.map_init = function() {
 	);
 	this.ws_layers[2] = us_3_wms_lyr;
 
-	us_4_wms_lyr = new OpenLayers.Layer.WMS(
+	us_4_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
 		'US 4th Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
@@ -136,7 +141,7 @@ WSLocator.prototype.map_init = function() {
 	);
 	this.ws_layers[3] = us_4_wms_lyr; 
 
-	us_5_wms_lyr = new OpenLayers.Layer.WMS(
+	us_5_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
 		'US 5th Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
@@ -153,7 +158,7 @@ WSLocator.prototype.map_init = function() {
 	);
 	this.ws_layers[4] = us_5_wms_lyr;
 
-	us_6_wms_lyr = new OpenLayers.Layer.WMS(
+	us_6_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
 		'US 6th Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
@@ -223,7 +228,7 @@ WSLocator.prototype.map_init = function() {
 	this.ws_layers[8] = bc_6_wms_lyr;
 	
 	this.markers = new OpenLayers.Layer.Markers("Your Location");
-	this.map.addLayers([this.gmap, this.markers]);
+	this.map.addLayers([this.bmap, this.markers]);
 	this.lyr_switcher = new OpenLayers.Control.LayerSwitcher();	
 	this.map.addControl(this.lyr_switcher);
 	this.map.setCenter(new OpenLayers.LonLat(-15791278,7703140), 3);
@@ -232,8 +237,10 @@ WSLocator.prototype.map_init = function() {
 
 WSLocator.prototype.initial_search = function (search_form, search_type) {
 	//Clear any markers on map
+	load_win.set_msg_and_show("Starting search...");
 	this.clear_markers();
 	if (search_type == 'full' || search_type == 'detail') {
+		load_win.append("Geocoding address...");
 		geocoder.geocode(search_type, search_form);
 	} else if (search_type == 'ws_name') {
 		var name = $('ws_name').value;
@@ -249,14 +256,16 @@ WSLocator.prototype.initial_search = function (search_form, search_type) {
 WSLocator.prototype.process_search = function (geo_result) {
 	var num_locations = geo_result.locations.length;
 	if (num_locations < 1) {
+		load_win.append("<b>Geocoder returned no results, please try again.</b>");
 	} else if (num_locations > 1) {
-		Dialog.closeInfo();
 		//Too many results
+		load_win.append("Geocoder returned multiple results...");
 		var div = $('loc_select');
 		EventController.addEventListener("LocSelectEvent", this.start_location_search);
 		this.location_selector.load_dialog(geo_result);
 	} else {
 		loc = geo_result.locations[0];
+		load_win.append("Geocoding successful ("+loc.getLngStr(2)+","+loc.getLatStr(2)+")...");
 		this.create_loc_marker(loc);
 		
 		//Complete location search
@@ -281,6 +290,7 @@ WSLocator.prototype.location_search = function (loc) {
     the_pt = new OpenLayers.Feature.Vector(the_pt);
 	this.point_loc_wkt = this.wkt.write(the_pt);
 
+	load_win.append("Searching watersheds...");
 	//Get ws_data including bounds
 	this.get_ws_data_by_location(lng, lat);
 }
@@ -303,6 +313,53 @@ WSLocator.prototype.get_ws_data_by_location = function (lng, lat) {
 
 WSLocator.prototype.alert_fail = function (response) {
 	alert("Request failed: "+response);
+}
+
+//Process watershed query results, drawing polygon and loading tabular data
+WSLocator.prototype.load_ws_results = function (transport) {
+	
+	//Extract ws data
+	var response = transport.responseText;
+	
+	//Store ws data
+	this.ws_data = parseJSON(response);
+	if (!this.ws_data) {
+		load_win.append("<b>Watershed search returned no results</b>");
+		return;
+	}
+
+	load_win.append("Loading watershed results");
+
+	this.rem_cur_ws_wms_lyr();
+	this.set_initial_ws_lyr();
+	
+	//Zoom to watershed polygon
+	this.zoom_to_cur_ws();
+	
+	var cur_ws_data = this.get_cur_ws_data();
+	var cur_ws_lyr = this.get_cur_ws_lyr();
+	
+	//Update WMS layer params with ws id and bounds
+	this.update_ws_wms_params();
+
+	//Add WMS layers to map
+	this.add_ws_wms_lyr(this.cur_ws_lyr_num);
+	
+	var ws_html = this.gen_ws_stats_html(cur_ws_data);
+	$('ws_stats_content').update(ws_html);
+
+	//Build watershed 'ladder' for current location
+	var ws_ladder_html = "<table id='ws_ladder_table'><tr><th>Level</th><th>Name</th><th></th></tr>";
+	for (var i=0; i<this.num_levels; i++) {
+		if (this.ws_data.ws_level_data[i]) {
+			
+			ws_ladder_html += "<tr align='center'><td>"+this.ws_data.ws_level_data[i].level+"</td><td>"+this.ws_data.ws_level_data[i].name+"</td><td><input type='button' value='Go To' onclick='wsl.level_change_event("+i+")'></td></tr>";
+		}
+	}
+	ws_ladder_html += "</table>";
+	$('ws_ladder_content').update(ws_ladder_html);
+	
+	load_win.close_in(.5);
 }
 
 WSLocator.prototype.get_cur_ws_lyr = function () {
@@ -367,52 +424,6 @@ WSLocator.prototype.get_ws_data_by_index = function (index) {
 	} else {
 		return null;
 	} 
-}
-
-//Process watershed query results, drawing polygon and loading tabular data
-WSLocator.prototype.load_ws_results = function (transport) {
-	//Extract ws data
-	var response = transport.responseText;
-	
-	//Store ws data
-	this.ws_data = parseJSON(response);
-	if (!this.ws_data) {
-		alert ("Failed to retrieve watershed data");
-		return;
-	}
-
-	console.log(this.ws_data);
-
-	this.rem_cur_ws_wms_lyr();
-	this.set_initial_ws_lyr();
-	
-	//Zoom to watershed polygon
-	this.zoom_to_cur_ws();
-	
-	var cur_ws_data = this.get_cur_ws_data();
-	var cur_ws_lyr = this.get_cur_ws_lyr();
-	
-	//Update WMS layer params with ws id and bounds
-	this.update_ws_wms_params();
-
-	//Add WMS layers to map
-	this.add_ws_wms_lyr(this.cur_ws_lyr_num);
-	
-	var ws_html = this.gen_ws_stats_html(cur_ws_data);
-	$('ws_stats_content').update(ws_html);
-
-	//Build watershed 'ladder' for current location
-	var ws_ladder_html = "<table id='ws_ladder_table'><tr><th>Level</th><th>Name</th><th></th></tr>";
-	for (var i=0; i<this.num_levels; i++) {
-		if (this.ws_data.ws_level_data[i]) {
-			
-			ws_ladder_html += "<tr align='center'><td>"+this.ws_data.ws_level_data[i].level+"</td><td>"+this.ws_data.ws_level_data[i].name+"</td><td><input type='button' value='Go To' onclick='wsl.level_change_event("+i+")'></td></tr>";
-		}
-	}
-	ws_ladder_html += "</table>";
-	$('ws_ladder_content').update(ws_ladder_html);
-	
-	Dialog.closeInfo()
 }
 
 // Set initial watershed layer based on whether US or BC
@@ -536,7 +547,7 @@ WSLocator.prototype.create_loc_marker = function (loc) {
 	//var lonlat = new OpenLayers.LonLat(lng,lat);
 	var popupSize = new OpenLayers.Size(80,80);
 //	var icon = new OpenLayers.Icon('/wiser.png',size,offset);
-	feature = new OpenLayers.Feature(this.gmap, lonlat);
+	feature = new OpenLayers.Feature(this.bmap, lonlat);
 	this.popup = feature.createPopup(false);
 	this.popup.setOpacity(0.9);
 	this.popup.setBackgroundColor("white");
@@ -645,13 +656,19 @@ LocationSelector.prototype.close = function () {
 }
 
 function LoadWindow(){
+	this.msg_cont = "";
 	this.msg = "";
 	//this.win = Window('load', {className: "bluelighting",  width:200, height:200, zIndex: 100, resizable: false, title: "", showEffect:Element.show, hideEffect: Effect.DropOut})
-	this.win = new Window({className: "bluelighting", width:300, height:300, zIndex: 100, resizable: false, title: "Status", showEffect:Effect.BlindDown, hideEffect: Effect.DropOut, draggable:true})
+	this.win = new Window({className: "bluelighting", width:300, height:120, zIndex: 100, resizable: false, title: "Status", hideEffect: Effect.DropOut, draggable:true})
+
+	var me = this;
+	this.close_in = function (x) {
+		me.do_close_in(x);
+	}
 }
 
-LoadWindow.prototype.append_to_msg = function (str) {
-	this.msg += '\n'+str;
+LoadWindow.prototype.append = function (str) {
+	this.msg += '<br/>'+str;
 	$('load_msg').update(this.msg);
 }
 
@@ -661,10 +678,11 @@ LoadWindow.prototype.set_msg_and_show = function (msg) {
 }
 
 LoadWindow.prototype.set_msg = function (msg) {
-	this.msg = "<div><div align='center' class='alert_progress'></div><div id='load_msg'>";
-	this.msg += msg;
-	this.msg += "</div><br/>";
-	this.win.getContent().innerHTML(this.msg);
+	this.msg = msg;	
+	this.msg_cont = "<div><div align='center' class='alert_progress'></div><div id='load_msg'>";
+	this.msg_cont += this.msg;
+	this.msg_cont += "</div><br/>";
+	this.win.getContent().innerHTML = this.msg_cont;
 }
 
 LoadWindow.prototype.show = function () {
@@ -673,4 +691,9 @@ LoadWindow.prototype.show = function () {
 
 LoadWindow.prototype.hide = function () {
 	this.win.close();
+}
+
+//Hide the window after x seconds
+LoadWindow.prototype.do_close_in = function (x) {
+	setTimeout('load_win.hide()',x*1000)
 }

@@ -120,12 +120,12 @@ function GeocoderLocation(result) {
 		this.scale = null;
 		
 	if (result.lat)
-		this.lat = result.lat;
+		this.lat = parseFloat(result.lat);
 	else
 		this.lat = null;
 		
 	if (result.lng)
-		this.lng = result.lng;
+		this.lng = parseFloat(result.lng);
 	else
 		this.lng = null;
 		
@@ -151,8 +151,18 @@ GeocoderLocation.prototype.getLat = function (){
   return this.lat;
 }
 
+//Trimmed to dp # of decimal places
+GeocoderLocation.prototype.getLatStr = function (dp){
+  return this.lat.toFixed(dp);
+}
+
 GeocoderLocation.prototype.getLng = function (){
   return this.lng;
+}
+
+//Trimmed todp # of decimal places
+GeocoderLocation.prototype.getLngStr = function (dp){
+  return this.lng.toFixed(dp);
 }
 
 GeocoderLocation.prototype.getRadius = function (){
