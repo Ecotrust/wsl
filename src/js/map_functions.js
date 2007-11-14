@@ -32,8 +32,11 @@ function WSLocator(){
 	this.start_location_search = function (loc) {
 		me.location_search(loc);
 	}
-	this.start_load_ws_results = function (response) {
-		me.load_ws_results(response);
+	this.start_load_initial_ws_results = function (response) {
+		me.load_initial_ws_results(response);
+	}
+	this.finish_level_change_event = function (response) {
+		me.do_finish_level_change_event(response);
 	}
 	this.start_marker_click = function (evt) {
 		me.marker_click(evt);
@@ -58,7 +61,7 @@ WSLocator.prototype.map_init = function() {
     this.bmap = new OpenLayers.Layer.Google(
         "Google Hybrid",
         {
- 
+ 			'wrapDateLine':true,
         	'maxZoomLevel':18, 
         	'sphericalMercator': true
         }
@@ -285,6 +288,7 @@ WSLocator.prototype.process_search = function (geo_result) {
 //Search for watershed given GeocoderLocation.
 //Called via LocSelectEvent
 WSLocator.prototype.location_search = function (loc) {
+	this.cur_loc = loc;
 	var lat = loc.getLat();
 	var lng = loc.getLng();
 	
@@ -301,7 +305,7 @@ WSLocator.prototype.location_search = function (loc) {
 
 	load_win.append("Searching watersheds...");
 	//Get ws_data including bounds
-	this.get_ws_data_by_location(lng, lat);
+	this.get_initial_ws_data_by_location(lng, lat);
 }
 
 //Query watershed data given its name
@@ -310,12 +314,25 @@ WSLocator.prototype.get_ws_by_name = function (name) {
 }
 
 //Query watershed data given a point location
-WSLocator.prototype.get_ws_data_by_location = function (lng, lat) {
+WSLocator.prototype.get_initial_ws_data_by_location = function (lng, lat) {
     request = new OpenLayers.Ajax.Request('php/remote_proxy.php',
     {
-            parameters: 'action=get&func=get_ws_data_by_location&lng='+lng+'&lat='+lat,
+            parameters: 'action=get&func=get_initial_ws_data_by_location&lng='+lng+'&lat='+lat,
             method: 'get',
-            onSuccess: this.start_load_ws_results,
+            onSuccess: this.start_load_initial_ws_results,
+            onFailure: this.alert_fail
+    });
+}
+
+//Query watershed data given a point location, region and level 
+WSLocator.prototype.get_ws_lyr_data_by_location = function (loc, region, lyr_num, callback) {
+	var lat = loc.getLat();
+	var lng = loc.getLng();
+    request = new OpenLayers.Ajax.Request('php/remote_proxy.php',
+    {
+            parameters: 'action=get&func=get_ws_lyr_data_by_location&lng='+lng+'&lat='+lat+"&lyr_num="+lyr_num+"&region="+region,
+            method: 'get',
+            onSuccess: callback,
             onFailure: this.alert_fail
     });
 }
@@ -324,14 +341,15 @@ WSLocator.prototype.alert_fail = function (response) {
 	alert("Request failed: "+response);
 }
 
-//Process watershed query results, drawing polygon and loading tabular data
-WSLocator.prototype.load_ws_results = function (transport) {
-	
+//Process initial watershed query results. load default level stats, build
+//ladder with other level names, load default level WMS layer
+WSLocator.prototype.load_initial_ws_results = function (transport) {
 	//Extract ws data
 	var response = transport.responseText;
 	
-	//Store ws data
+	//Set global ws data
 	this.ws_data = parseJSON(response);
+	console.log(this.ws_data);
 	if (!this.ws_data) {
 		load_win.append("<b>Watershed search returned no results</b>");
 		return;
@@ -348,7 +366,7 @@ WSLocator.prototype.load_ws_results = function (transport) {
 	var cur_ws_data = this.get_cur_ws_data();
 	var cur_ws_lyr = this.get_cur_ws_lyr();
 	
-	//Update WMS layer params with ws id and bounds
+	//Update cur WMS layer params
 	this.update_ws_wms_params();
 
 	//Add WMS layers to map
@@ -368,7 +386,7 @@ WSLocator.prototype.load_ws_results = function (transport) {
 	ws_ladder_html += "</table>";
 	$('ws_ladder_content').update(ws_ladder_html);
 	
-	load_win.close_in(.5);
+	load_win.close_in(.25);
 }
 
 WSLocator.prototype.get_cur_ws_lyr = function () {
@@ -391,6 +409,13 @@ WSLocator.prototype.get_cur_ws_data = function () {
 		return this.ws_data.ws_level_data[this.cur_ws_lyr_num];
 	else
 		return null;
+}
+
+WSLocator.prototype.set_ws_level_data = function (ws_lyr_num, ws_level_data) {
+	if (ws_lyr_num != null)
+		this.ws_data.ws_level_data[ws_lyr_num] = ws_level_data;
+	else
+		return null;	
 }
 
 WSLocator.prototype.get_cur_region = function () {
@@ -425,6 +450,14 @@ WSLocator.prototype.get_cur_region_layers = function () {
 		cur_region_layers.push(this.ws_layers[cur_region_layer_nums[i]]);
 	}
 	return cur_region_layers;
+}
+
+//Returns the current search location as a GeocoderLocation
+WSLocator.prototype.get_cur_location = function () {
+	if (this.cur_loc)
+		return this.cur_loc;
+	else
+		return null;
 }
 
 WSLocator.prototype.get_ws_data_by_index = function (index) {
@@ -471,13 +504,40 @@ WSLocator.prototype.set_initial_ws_lyr = function (transport) {
 
 WSLocator.prototype.level_change_event = function (new_ws_lyr_num) {
 	if (new_ws_lyr_num != this.cur_ws_lyr_num) {
+		load_win.set_msg_and_show("Searching watersheds...");
 		//Update WMS layer params with ws id and bounds
 		this.rem_cur_ws_wms_lyr();
-		this.cur_ws_lyr_num = new_ws_lyr_num; 
-		this.add_ws_wms_lyr(this.cur_ws_lyr_num);
-		this.zoom_to_cur_ws(); 
-		this.update_stats();
+		this.cur_ws_lyr_num = new_ws_lyr_num;
+		var cur_loc = this.get_cur_location();
+		//Fetch watershed data
+		this.get_ws_lyr_data_by_location(cur_loc, this.get_cur_region(), new_ws_lyr_num, this.finish_level_change_event);
 	}
+}
+
+//Given new watershed data for current level: add, load and zoom
+//Assumes new ws level and layer has already been set, only the new
+//data needs to be loaded
+WSLocator.prototype.do_finish_level_change_event = function (transport) {
+	//Extract ws data
+	var response = transport.responseText;
+	//Store ws data
+	var ws_level_data = parseJSON(response);
+	console.log(ws_level_data);
+	this.set_ws_level_data(this.cur_ws_lyr_num, ws_level_data);
+	//Update cur WMS layer params
+	this.update_ws_wms_params();
+		
+	if (!ws_level_data) {
+		load_win.append("<b>Watershed search returned no results. Please try another level</b>");
+		return;
+	}
+
+	load_win.append("Loading watershed results");
+
+	this.add_ws_wms_lyr(this.cur_ws_lyr_num);
+	this.zoom_to_cur_ws(); 
+	this.update_stats();
+	load_win.close_in(.25);	
 }
 
 WSLocator.prototype.update_stats = function () {
@@ -486,22 +546,17 @@ WSLocator.prototype.update_stats = function () {
 	$('ws_stats_content').update(ws_html);
 }
 
+//Updates the WMS params for the current WS layer
 WSLocator.prototype.update_ws_wms_params = function () {
-	var cur_region_layers = this.get_cur_region_layers();
-	for (var i=0; i<cur_region_layers.length; i++) {
-		var ws_lyr = cur_region_layers[i];
-		var ws_data = this.get_ws_data_by_index(i);
-		
-		//bbox: '-20010000,1300000,-11500000,1155000',
-		var left = parseFloat(ws_data['left']).toFixed(3);
-		var bottom = parseFloat(ws_data['bottom']).toFixed(3);
-		var right = parseFloat(ws_data['right']).toFixed(3);
-		var top = parseFloat(ws_data['top']).toFixed(3);
-		var bbox_str = left+','+bottom+','+right+','+top;
-		console.log('gid: '+ws_data.gid);
-		console.log('bbox: '+bbox_str);
-		ws_lyr.mergeNewParams({bbox: bbox_str, gid: ws_data.gid});
-	}
+	var ws_lyr = this.get_cur_ws_lyr();
+	var ws_data = this.get_cur_ws_data();
+	
+	var left = parseFloat(ws_data['left']).toFixed(3);
+	var bottom = parseFloat(ws_data['bottom']).toFixed(3);
+	var right = parseFloat(ws_data['right']).toFixed(3);
+	var top = parseFloat(ws_data['top']).toFixed(3);
+	var bbox_str = left+','+bottom+','+right+','+top;
+	ws_lyr.mergeNewParams({bbox: bbox_str, gid: ws_data.gid});
 }
 
 WSLocator.prototype.gen_ws_stats_html = function (ws_level_data) {
@@ -668,7 +723,7 @@ function LoadWindow(){
 	this.msg_cont = "";
 	this.msg = "";
 	//this.win = Window('load', {className: "bluelighting",  width:200, height:200, zIndex: 100, resizable: false, title: "", showEffect:Element.show, hideEffect: Effect.DropOut})
-	this.win = new Window({className: "bluelighting", width:300, height:120, zIndex: 100, resizable: false, title: "Status", hideEffect: Effect.DropOut, draggable:true})
+	this.win = new Window({className: "bluelighting", width:300, height:120, zIndex: 100, resizable: false, title: "Status", hideEffect: Effect.Fade, draggable:true})
 
 	var me = this;
 	this.close_in = function (x) {
