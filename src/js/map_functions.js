@@ -15,6 +15,8 @@ function WSLocator(){
 	this.ws_layers = [];
 	this.load_msg = "";
 	
+	this.search_loc = null;
+	
 	this.num_levels = 11;
 	this.us_ws_layer_nums = [0,1,2,3,4,5];
 	this.bc_ws_layer_nums = [6,7,8];
@@ -26,8 +28,8 @@ function WSLocator(){
 	this.location_selector = new LocationSelector();
 
 	var me = this;
-	this.start_process_search = function (result) {
-		me.process_search(result);
+	this.start_process_address_search = function (result) {
+		me.process_address_search(result);
 	}
 	this.start_location_search = function (loc) {
 		me.location_search(loc);
@@ -41,8 +43,11 @@ function WSLocator(){
 	this.start_marker_click = function (evt) {
 		me.marker_click(evt);
 	}
+	this.map_click_search = function (e) {
+		me.do_map_click_search(e);
+	}
 	
-	EventController.addEventListener("GeocodeReturnEvent", this.start_process_search);
+	EventController.addEventListener("GeocodeReturnEvent", this.start_process_address_search);
 }
 
 //Initialize the OL map, map controls, and WMS layers
@@ -59,7 +64,7 @@ WSLocator.prototype.map_init = function() {
 
     //Google base map
     this.bmap = new OpenLayers.Layer.Google(
-        "Google Hybrid",
+        "Google Base Map",
         {
  			'wrapDateLine':true,
         	'maxZoomLevel':18, 
@@ -80,7 +85,7 @@ WSLocator.prototype.map_init = function() {
 		'US 1st Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'watersheds',
+			layers: 'us_watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
@@ -98,7 +103,7 @@ WSLocator.prototype.map_init = function() {
 		'US 2nd Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'watersheds',
+			layers: 'us_watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
@@ -116,7 +121,7 @@ WSLocator.prototype.map_init = function() {
 		'US 3rd Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'watersheds',
+			layers: 'us_watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
@@ -134,7 +139,7 @@ WSLocator.prototype.map_init = function() {
 		'US 4th Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'watersheds',
+			layers: 'us_watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
@@ -152,7 +157,7 @@ WSLocator.prototype.map_init = function() {
 		'US 5th Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'watersheds',
+			layers: 'us_watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
@@ -170,7 +175,7 @@ WSLocator.prototype.map_init = function() {
 		'US 6th Field Watershed', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'watersheds',
+			layers: 'us_watersheds',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
@@ -185,11 +190,11 @@ WSLocator.prototype.map_init = function() {
 	this.ws_layers[5] = us_6_wms_lyr;
 
 	//BC Watershed WMS Layers
-	bc_3_wms_lyr = new OpenLayers.Layer.WMS(
-		'US 3rd Field Watershed', 
+	bc_3_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
+		'BC Watershed (US 3rd Field Equivalent)', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'watersheds',
+			layers: 'bc_3rd_field_equivalent',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
@@ -203,11 +208,11 @@ WSLocator.prototype.map_init = function() {
 	);
 	this.ws_layers[6] = bc_3_wms_lyr;
 
-	bc_4_wms_lyr = new OpenLayers.Layer.WMS(
-		'BC (US 4th Field Equivalent) Watershed', 
+	bc_4_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
+		'BC Watershed (US 4th Field Equivalent)', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'watersheds',
+			layers: 'bc_4th_field_equivalent',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
@@ -221,11 +226,11 @@ WSLocator.prototype.map_init = function() {
 	);
 	this.ws_layers[7] = bc_4_wms_lyr;
 
-	bc_6_wms_lyr = new OpenLayers.Layer.WMS(
-		'BC (US 6th Field Equivalent) Watershed', 
+	bc_6_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
+		'BC Watershed (US 6th Field Equivalent)', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
 		{
-			layers: 'watersheds',
+			layers: 'bc_6th_field_equivalent',
 			transparent: 'true',
 			format: 'image/gif',
 			srs: 'epsg:900913',
@@ -238,7 +243,45 @@ WSLocator.prototype.map_init = function() {
 			opacity: 0.5} 
 	);
 	this.ws_layers[8] = bc_6_wms_lyr;
+
+	//Yukon WMS layers
+
+	yukon_3_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
+		'Yukon Watersheds (US 3rd Field Equivalent)', 
+		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
+		{
+			layers: 'yukon_3rd_field_equivalent',
+			transparent: 'true',
+			format: 'image/gif',
+			srs: 'epsg:900913',
+			table: 'yukon_3rd_field_equivalent',
+			bbox: null,
+			gid: null
+		},
+		{
+			isBaseLayer: false, 
+			opacity: 0.5} 
+	);
+	this.ws_layers[9] = yukon_3_wms_lyr;
 	
+	yukon_4_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
+		'Yukon Watersheds (US 4th Field Equivalent)', 
+		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
+		{
+			layers: 'yukon_4th_field_equivalent',
+			transparent: 'true',
+			format: 'image/gif',
+			srs: 'epsg:900913',
+			table: 'yukon_4th_field_equivalent',
+			bbox: null,
+			gid: null
+		},
+		{
+			isBaseLayer: false, 
+			opacity: 0.5} 
+	);
+	this.ws_layers[10] = yukon_4_wms_lyr;
+
 	this.markers = new OpenLayers.Layer.Markers("Your Location");
 	this.map.addLayers([this.bmap, this.markers]);
 	this.lyr_switcher = new OpenLayers.Control.LayerSwitcher();	
@@ -246,6 +289,8 @@ WSLocator.prototype.map_init = function() {
 	this.map.setCenter(new OpenLayers.LonLat(-15791278,7703140), 3);
 	this.wkt = new OpenLayers.Format.WKT();
 }
+
+/************************* Address Search ******************************/
 
 WSLocator.prototype.initial_search = function (search_form, search_type) {
 	//Clear any markers on map
@@ -265,47 +310,69 @@ WSLocator.prototype.initial_search = function (search_form, search_type) {
 }
 
 //Process geocode query result
-WSLocator.prototype.process_search = function (geo_result) {
+WSLocator.prototype.process_address_search = function (geo_result) {
 	var num_locations = geo_result.locations.length;
 	if (num_locations < 1) {
 		load_win.append("<b>Geocoder returned no results, please try again.</b>");
 	} else if (num_locations > 1) {
 		//Too many results
 		load_win.append("Geocoder returned multiple results...");
+		load_win.hide();
 		var div = $('loc_select');
 		EventController.addEventListener("LocSelectEvent", this.start_location_search);
 		this.location_selector.load_dialog(geo_result);
 	} else {
-		loc = geo_result.locations[0];
+		var loc = geo_result.locations[0];
+		var search_desc = loc.address+"<br/>"+loc.city+", "+loc.state+", "+loc.zip+" "+loc.country;
+		var search_loc = new SearchLocation(search_desc, loc.getLng(), loc.getLat());
+		
 		load_win.append("Geocoding successful ("+loc.getLngStr(2)+","+loc.getLatStr(2)+")...");
-		this.create_loc_marker(loc);
+		this.create_search_marker(search_loc);
 		
 		//Complete location search
-		this.location_search(loc);
+		this.location_search(search_loc);
 	}
+}
+
+WSLocator.prototype.process_geonames_search = function (geoname_result) {
+	
 }
 
 //Search for watershed given GeocoderLocation.
 //Called via LocSelectEvent
 WSLocator.prototype.location_search = function (loc) {
-	this.cur_loc = loc;
-	var lat = loc.getLat();
-	var lng = loc.getLng();
+	this.search_loc = loc;
 	
 	//Create marker for geocoded point
 	if (this.markers.markers.length > 1) {
 		this.clear_markers();
-		this.create_loc_marker(loc);
+		this.create_search_marker(this.search_loc);
 	}
 	
 	//Generate WKT of geocoded point
-	the_pt = new OpenLayers.Geometry.Point(lng, lat);
+	the_pt = new OpenLayers.Geometry.Point(this.search_loc.lng, this.search_loc.lat);
     the_pt = new OpenLayers.Feature.Vector(the_pt);
 	this.point_loc_wkt = this.wkt.write(the_pt);
 
-	load_win.append("Searching watersheds...");
 	//Get ws_data including bounds
-	this.get_initial_ws_data_by_location(lng, lat);
+	this.get_initial_ws_data_by_location(this.search_loc.lng, this.search_loc.lat);
+}
+
+/******************************* Map Click Search ****************************/
+
+WSLocator.prototype.turn_on_map_click_search = function () {
+    this.map.events.register(
+    	"click", 
+    	this.map, 
+    	wsl.map_click_search
+    );
+}
+
+WSLocator.prototype.do_map_click_search = function (e) {
+	this.map.events.unregister("click", this.map, this.map_click_search);
+    var lonlat = wsl.map.getLonLatFromViewPortPx(e.xy);
+	lonlat = OpenLayers.Layer.SphericalMercator.inverseMercator(lonlat.lon, lonlat.lat);
+	this.get_initial_ws_data_by_location(lonlat.lon, lonlat.lat);
 }
 
 //Query watershed data given its name
@@ -315,6 +382,7 @@ WSLocator.prototype.get_ws_by_name = function (name) {
 
 //Query watershed data given a point location
 WSLocator.prototype.get_initial_ws_data_by_location = function (lng, lat) {
+	load_win.append("Searching watersheds...");
     request = new OpenLayers.Ajax.Request('php/remote_proxy.php',
     {
             parameters: 'action=get&func=get_initial_ws_data_by_location&lng='+lng+'&lat='+lat,
@@ -325,9 +393,7 @@ WSLocator.prototype.get_initial_ws_data_by_location = function (lng, lat) {
 }
 
 //Query watershed data given a point location, region and level 
-WSLocator.prototype.get_ws_lyr_data_by_location = function (loc, region, lyr_num, callback) {
-	var lat = loc.getLat();
-	var lng = loc.getLng();
+WSLocator.prototype.get_ws_lyr_data_by_location = function (lat, lng, region, lyr_num, callback) {
     request = new OpenLayers.Ajax.Request('php/remote_proxy.php',
     {
             parameters: 'action=get&func=get_ws_lyr_data_by_location&lng='+lng+'&lat='+lat+"&lyr_num="+lyr_num+"&region="+region,
@@ -338,7 +404,7 @@ WSLocator.prototype.get_ws_lyr_data_by_location = function (loc, region, lyr_num
 }
 
 WSLocator.prototype.alert_fail = function (response) {
-	alert("Request failed: "+response);
+	load_win.append("<b>Request failed: "+response+"<br/>");
 }
 
 //Process initial watershed query results. load default level stats, build
@@ -348,20 +414,31 @@ WSLocator.prototype.load_initial_ws_results = function (transport) {
 	var response = transport.responseText;
 	
 	//Set global ws data
-	this.ws_data = parseJSON(response);
-	console.log(this.ws_data);
-	if (!this.ws_data) {
-		load_win.append("<b>Watershed search returned no results</b>");
+	var new_ws_data = parseJSON(response);
+	
+	console.log(new_ws_data);
+	
+	if (!new_ws_data) {
+		load_win.append("<b>Watershed search returned no results.</b>");
 		return;
+	} else if (new_ws_data.error) {
+		load_win.append("<b>"+new_ws_data.error+"</b>");
+		return;
+	} else {
+		this.ws_data = new_ws_data;
 	}
 
-	load_win.append("Loading watershed results");
-
 	this.rem_cur_ws_wms_lyr();
-	this.set_initial_ws_lyr();
-	
+	var success = this.set_initial_ws_lyr();
+	if (!success) {
+		load_win.append("<b>Incomplete watershed results returned</b>");
+		return false;
+	}
+
 	//Zoom to watershed polygon
 	this.zoom_to_cur_ws();
+
+	load_win.append("Loading watershed results");
 	
 	var cur_ws_data = this.get_cur_ws_data();
 	var cur_ws_lyr = this.get_cur_ws_lyr();
@@ -452,14 +529,6 @@ WSLocator.prototype.get_cur_region_layers = function () {
 	return cur_region_layers;
 }
 
-//Returns the current search location as a GeocoderLocation
-WSLocator.prototype.get_cur_location = function () {
-	if (this.cur_loc)
-		return this.cur_loc;
-	else
-		return null;
-}
-
 WSLocator.prototype.get_ws_data_by_index = function (index) {
 	if (this.ws_data && this.ws_data.ws_level_data) {
 		return this.ws_data.ws_level_data[index];
@@ -471,35 +540,48 @@ WSLocator.prototype.get_ws_data_by_index = function (index) {
 // Set initial watershed layer based on whether US or BC
 // and what layers are available
 // So, assumes watershed data has already been queried 
+// Assumes that at least one level contains full data
+// If the server returned no good watershed data then it should
+// have errored and the client should never have gotten here
 WSLocator.prototype.set_initial_ws_lyr = function (transport) {
 	var region = this.get_cur_region();
 	if (!region) return;
 	switch(this.ws_data.region) {
 		case 'us':
+			//Search through levels for data
 			for (var i=0; i<this.default_us_order.length;i++) {
-				if (this.get_ws_data_by_index(this.default_us_order[i]) != null) {
+				var cur_ws_data = this.get_ws_data_by_index(this.default_us_order[i]);
+				//If the gid isn't there then it's not really loaded so skip it
+				if (cur_ws_data != null && cur_ws_data.gid != null) {
 					this.cur_ws_lyr_num = this.default_us_order[i];
-					return;
+					return true;
 				}
 			}
 			break;
 		case 'bc':
+			//Search through levels for data
 			for (var i=0; i<this.default_bc_order.length;i++) {
-				if (this.get_ws_data_by_index(this.default_bc_order[i]) != null) {
+				var cur_ws_data = this.get_ws_data_by_index(this.default_bc_order[i]);
+				//If the gid isn't there then it's not really loaded so skip it
+				if (cur_ws_data != null && cur_ws_data.gid != null) {
 					this.cur_ws_lyr_num = this.default_bc_order[i];
-					return;
+					return true;
 				}
 			}
 			break;
 		case 'yukon':
+			//Search through levels for data
 			for (var i=0; i<this.default_yukon_order.length;i++) {
-				if (this.get_ws_data_by_index(this.default_yukon_order[i]) != null) {
+				var cur_ws_data = this.get_ws_data_by_index(this.default_yukon_order[i]);
+				//If the gid isn't there then it's not really loaded so skip it
+				if (cur_ws_data != null && cur_ws_data.gid != null) {
 					this.cur_ws_lyr_num = this.default_yukon_order[i];
-					return;
+					return true;
 				}
 			}
 			break;
 	}
+	return false;
 }
 
 WSLocator.prototype.level_change_event = function (new_ws_lyr_num) {
@@ -508,9 +590,8 @@ WSLocator.prototype.level_change_event = function (new_ws_lyr_num) {
 		//Update WMS layer params with ws id and bounds
 		this.rem_cur_ws_wms_lyr();
 		this.cur_ws_lyr_num = new_ws_lyr_num;
-		var cur_loc = this.get_cur_location();
 		//Fetch watershed data
-		this.get_ws_lyr_data_by_location(cur_loc, this.get_cur_region(), new_ws_lyr_num, this.finish_level_change_event);
+		this.get_ws_lyr_data_by_location(this.search_loc.lat, this.search_loc.lng, this.get_cur_region(), new_ws_lyr_num, this.finish_level_change_event);
 	}
 }
 
@@ -599,12 +680,12 @@ WSLocator.prototype.add_ws_wms_lyr = function (ws_lyr_num) {
 	//this.map.addControl(this.lyr_switcher);
 }
 
-WSLocator.prototype.create_loc_marker = function (loc) {
-	var lng = loc.lng;
-	var lat = loc.lat;
+//Given a SearchLocation creates a marker
+WSLocator.prototype.create_search_marker = function (search_loc) {
+	var lng = search_loc.lng;
+	var lat = search_loc.lat;
 
 	//Create location marker on map
-	var html = loc.address+"<br/>"+loc.city+", "+loc.state+", "+loc.zip+" "+loc.country;
 
 	//Convert wgs84 to mercator meters
 	var lonlat = this.sphere_to_merc(lng,lat);
@@ -615,7 +696,7 @@ WSLocator.prototype.create_loc_marker = function (loc) {
 	this.popup = feature.createPopup(false);
 	this.popup.setOpacity(0.9);
 	this.popup.setBackgroundColor("white");
-	this.popup.setContentHTML(html);
+	this.popup.setContentHTML(search_loc.description);
 	marker = feature.createMarker();
 	this.markers.addMarker(marker);
 	marker.events.register("mousedown", feature, this.start_marker_click);
@@ -625,6 +706,12 @@ WSLocator.prototype.create_loc_marker = function (loc) {
 //by commercial map tile providers.
 WSLocator.prototype.sphere_to_merc = function (lng, lat) {
 	return OpenLayers.Layer.SphericalMercator.forwardMercator(parseFloat(lng), parseFloat(lat));
+}
+
+//Project global mercator to spherical coordinates (wgs84) used
+//by commercial map tile providers.
+WSLocator.prototype.merc_to_sphere = function (lng, lat) {
+	return OpenLayers.Layer.SphericalMercator.inverseMercator(parseFloat(lng), parseFloat(lat));
 }
 
 WSLocator.prototype.zoom_to = function (lng, lat, zoom_level) {
@@ -661,6 +748,15 @@ WSLocator.prototype.clear_map = function () {
 	}
 }
 
+//Holds basic info about the current search location.  Just a basic type
+//that might be populated with data from a GeocoderLocation or a 
+//GeonameLocation.  Used as input for creating search location marker.
+function SearchLocation(description, lng, lat) {
+	this.description = description;
+	this.lng = lng;
+	this.lat = lat;
+}
+
 /****************************************************************************
  * LocationSelector class
  *
@@ -694,19 +790,20 @@ LocationSelector.prototype.load_dialog = function (georesult) {
 		sel_html += "</tr>";
 
 		//Add marker
-		//var marker_html = address+"<br/>"+city+", "+state+", "+zip+" "+country;
-		wsl.create_loc_marker(loc);
+		var description = address+"<br/>"+city+", "+state+", "+zip+" "+country;
+		var search_loc = new SearchLocation (description, loc.getLng(), loc.getLat());
+		wsl.create_search_marker(search_loc);
 	}
 	sel_html += "</table>";
 	
 	// Create window with scrollable text
 	if (!$('loc_select')) {
-		this.sel_win = new Window('loc_select', {className: "bluelighting",  width:340, height:200, zIndex: 100, resizable: true, title: "Multiple Results, Select One", showEffect:Element.show, hideEffect: Effect.DropOut, destroyOnClose: true})
+		this.sel_win = new Window('loc_select', {className: "bluelighting",  width:340, height:200, zIndex: 100, resizable: true, title: "Multiple Results, Select One", showEffect:Element.show, hideEffect: Effect.Fade, destroyOnClose: true})
 	}
 	
 	//Load with location choices
-	win.getContent().innerHTML= "<div style='padding:10px'>"+sel_html+"</div>";
-	win.showCenter();	
+	this.sel_win.getContent().innerHTML= "<div style='padding:10px'>"+sel_html+"</div>";
+	this.sel_win.showCenter();	
 }
 
 LocationSelector.prototype.select = function (location_num) {
@@ -733,7 +830,11 @@ function LoadWindow(){
 
 LoadWindow.prototype.append = function (str) {
 	this.msg += '<br/>'+str;
-	$('load_msg').update(this.msg);
+	var load_msg = $('load_msg');
+	if (!load_msg)
+		this.set_msg_and_show(str);
+	else
+		load_msg.update(this.msg);
 }
 
 LoadWindow.prototype.set_msg_and_show = function (msg) {

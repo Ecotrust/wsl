@@ -5,11 +5,22 @@ function YahooGeocoder() {
 	}
 }
 
-YahooGeocoder.prototype.geocode = function(search_type, search_form_name) {
+YahooGeocoder.prototype.geocode = function(search_type) {
 	//Serialize search form and send geocode request to proxy script
 	//this.result_callback = callback;
-	var params = $(search_form_name).serialize();
-	params += '&search_type='+escape(search_type);
+	var params = 'search_type='+escape(search_type);
+	switch (search_type) {
+		case 'full': 
+			params += '&full_address='+$F('full_address'); 
+			break;
+		case 'detail':
+			params += '&street='+$F('street');
+			params += '&city='+$F('city');
+			params += '&state='+$F('state');
+			params += '&zip='+$F('zip');
+			break;
+	}
+
 	request = new OpenLayers.Ajax.Request('php/yahoo_proxy.php', 
 	{
 	    method:'get',
