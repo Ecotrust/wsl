@@ -51,13 +51,17 @@ function WSLocator(){
 }
 
 //Initialize the OL map, map controls, and WMS layers
+//        maxExtent: new OpenLayers.Bounds(-20037508, -20037508,
+//                                         20037508, 20037508.34)
+//        maxExtent: new OpenLayers.Bounds(-18017940, 2759070,
+//                                         -12840605, 12582146),
 WSLocator.prototype.map_init = function() {
     this.options = {
         projection: "EPSG:900913",
         units: "m",
         maxResolution: 156543.0339,
-        maxExtent: new OpenLayers.Bounds(-20037508, -20037508,
-                                         20037508, 20037508.34)
+        maxExtent: new OpenLayers.Bounds(-20017940, 3561354,
+                                         -12300000, 11545048),	
     };
 
     this.map = new OpenLayers.Map('map', this.options);
@@ -79,6 +83,23 @@ WSLocator.prototype.map_init = function() {
 //        	'sphericalMercator': true
 //        }
 //    );
+
+	//SN boundary layer for initial load
+	//US Watershed WMS layers
+	this.sn_boundary = new OpenLayers.Layer.WMS.Untiled(
+		'Salmon Nation Boundary', 
+		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
+		{
+			layers: 'sn_visual_boundary',
+			transparent: 'true',
+			format: 'image/gif',
+			srs: 'epsg:900913'
+		},
+		{
+			isBaseLayer: false, 
+			opacity: 0.5} 
+	);
+
 
 	//US Watershed WMS layers
 	us_1_wms_lyr = new OpenLayers.Layer.WMS.Untiled(
@@ -283,11 +304,14 @@ WSLocator.prototype.map_init = function() {
 	this.ws_layers[10] = yukon_4_wms_lyr;
 
 	this.markers = new OpenLayers.Layer.Markers("Your Location");
-	this.map.addLayers([this.bmap, this.markers]);
+	this.map.addLayers([this.bmap, this.sn_boundary, this.markers]);
 	this.lyr_switcher = new OpenLayers.Control.LayerSwitcher();	
 	this.map.addControl(this.lyr_switcher);
+	this.map.addControl(new OpenLayers.Control.MousePosition());
 	this.map.setCenter(new OpenLayers.LonLat(-15791278,7703140), 3);
 	this.wkt = new OpenLayers.Format.WKT();
+	
+	Event.observe('OpenLayers_Control_PanZoom_zoomworld_innerImage', 'click', this.show_sn_boundary.bindAsEventListener(this));
 }
 
 /************************* Address Search ******************************/
@@ -344,13 +368,13 @@ WSLocator.prototype.location_search = function (loc) {
 	this.search_loc = loc;
 	
 	//Create marker for geocoded point
-	if (this.markers.markers.length > 1) {
+	if (this.markers.markers.length > 0) {
 		this.clear_markers();
-		this.create_search_marker(this.search_loc);
 	}
+	this.create_search_marker(this.search_loc);
 	
 	//Generate WKT of geocoded point
-	the_pt = new OpenLayers.Geometry.Point(this.search_loc.lng, this.search_loc.lat);
+	var the_pt = new OpenLayers.Geometry.Point(this.search_loc.lng, this.search_loc.lat);
     the_pt = new OpenLayers.Feature.Vector(the_pt);
 	this.point_loc_wkt = this.wkt.write(the_pt);
 
@@ -372,7 +396,10 @@ WSLocator.prototype.do_map_click_search = function (e) {
 	this.map.events.unregister("click", this.map, this.map_click_search);
     var lonlat = wsl.map.getLonLatFromViewPortPx(e.xy);
 	lonlat = OpenLayers.Layer.SphericalMercator.inverseMercator(lonlat.lon, lonlat.lat);
-	this.get_initial_ws_data_by_location(lonlat.lon, lonlat.lat);
+	var desc = "User selected location<br/>("+(lonlat.lon).toFixed(4)+","+(lonlat.lat).toFixed(4)+")";
+	var click_loc = new SearchLocation(desc, lonlat.lon, lonlat.lat);
+	this.location_search(click_loc);
+	//this.get_initial_ws_data_by_location(lonlat.lon, lonlat.lat);
 }
 
 //Query watershed data given its name
@@ -382,6 +409,7 @@ WSLocator.prototype.get_ws_by_name = function (name) {
 
 //Query watershed data given a point location
 WSLocator.prototype.get_initial_ws_data_by_location = function (lng, lat) {
+	this.hide_sn_boundary();
 	load_win.append("Searching watersheds...");
     request = new OpenLayers.Ajax.Request('php/remote_proxy.php',
     {
@@ -586,6 +614,7 @@ WSLocator.prototype.set_initial_ws_lyr = function (transport) {
 
 WSLocator.prototype.level_change_event = function (new_ws_lyr_num) {
 	if (new_ws_lyr_num != this.cur_ws_lyr_num) {
+		this.hide_sn_boundary();
 		load_win.set_msg_and_show("Searching watersheds...");
 		//Update WMS layer params with ws id and bounds
 		this.rem_cur_ws_wms_lyr();
@@ -678,6 +707,19 @@ WSLocator.prototype.add_ws_wms_lyr = function (ws_lyr_num) {
 	//this.map.removeControl(this.lyr_switcher);
 	//this.lyr_switcher = new OpenLayers.Control.LayerSwitcher();
 	//this.map.addControl(this.lyr_switcher);
+}
+
+WSLocator.prototype.hide_sn_boundary = function() {
+	if (this.map.getLayerIndex(this.sn_boundary) >= 0)
+		this.map.removeLayer(this.sn_boundary);
+}
+
+WSLocator.prototype.show_sn_boundary = function() {
+	if (this.map.getLayerIndex(this.sn_boundary) == -1) {
+		this.rem_cur_ws_wms_lyr();
+		this.map.addLayer(this.sn_boundary);
+		this.map.raiseLayer(this.markers, 1);
+	}
 }
 
 //Given a SearchLocation creates a marker
