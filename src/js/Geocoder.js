@@ -5,33 +5,33 @@ function YahooGeocoder() {
 	}
 }
 
-YahooGeocoder.prototype.geocode = function(search_type) {
-	//Serialize search form and send geocode request to proxy script
-	//this.result_callback = callback;
-	var params = 'search_type='+escape(search_type);
+YahooGeocoder.prototype.geocode = function(search_type, params) {
+	//Build search request and send to proxy script
+	var param_str = 'search_type='+escape(search_type);
 	switch (search_type) {
 		case 'full': 
-			params += '&full_address='+$F('full_address'); 
+			param_str += '&full_address='+params.full_address; 
 			break;
 		case 'detail':
-			params += '&street='+$F('street');
-			params += '&city='+$F('city');
-			params += '&state='+$F('state');
-			params += '&zip='+$F('zip');
+			param_str += '&street='+params.street;
+			param_str += '&city='+params.city;
+			param_str += '&state='+params.state;
+			param_str += '&zip='+params.zip;
 			break;
 	}
-
-	request = new OpenLayers.Ajax.Request('php/yahoo_proxy.php', 
-	{
-	    method:'get',
-	    parameters: params,
-		onSuccess: this.process_start,
-		onFailure: this.geocode_fail
-	});
+	request = new OpenLayers.Ajax.Request(
+		'php/yahoo_proxy.php', 
+		{
+		    method:'get',
+		    parameters: param_str,
+			onSuccess: this.process_start,
+			onFailure: this.geocode_fail
+		}
+	);
 }
 
 YahooGeocoder.prototype.geocode_fail = function() {
-	alert('Failure to connect to geocoder service');
+	alert('Geocode service failed');
 }
 
 YahooGeocoder.prototype.process_result = function(transport) {
@@ -40,7 +40,7 @@ YahooGeocoder.prototype.process_result = function(transport) {
 	var result_obj = parseJSON(json_result);
 	
 	//Create new object to hold results
-	var geo_result = new GeocoderResult();	
+	var geo_result = new GeocoderResultSet();	
 
 	//Verify there is a result
 	if (!result_obj) {
@@ -58,15 +58,21 @@ YahooGeocoder.prototype.process_result = function(transport) {
 		//Multiple results
 		for (var i=0; i<result.length; i++) {
 			var loc = result[i];
-	        geo_result.addLocation({address:loc.Address, 
-	        					 city: loc.City,
-	        					 state: loc.State,
-	        					 zip: loc.Zip,
-	        					 country: loc.Country,
-	                             precision: loc.precision,
-	                             lat: loc.Latitude, 
-	                             lng: loc.Longitude,
-	                             id: 1+1}); 	
+			var description = loc.Address+"<br/>"+loc.City+", "+loc.State+", "+loc.Zip+" "+loc.Country;
+	        geo_result.addLocation(
+	        	{
+	        		description: description,
+	        		address:loc.Address, 
+	        		city: loc.City,
+	        		state: loc.State,
+	        		zip: loc.Zip,
+	        		country: loc.Country,
+	                precision: loc.precision,
+	                lat: loc.Latitude, 
+	                lng: loc.Longitude,
+	                id: 1+1
+				}
+			); 	
 		}
 	} else {
 		//Single result
@@ -88,13 +94,14 @@ YahooGeocoder.prototype.process_result = function(transport) {
 
 
 /****************************************************************************
- * GeocoderResult class
+ * GeocoderResultSet class
  *
  * Generalized structure for storing a geocoder result.  Used by geocoder
  * service objects (YahooGeocoder, GoogleGeocoder) to provide results to the
  * geocoder client in a common form
  ***************************************************************************/
-function GeocoderResult(){
+function GeocoderResultSet(){
+	this.type = "GeocoderResultSet";
 	//Requested address
 	this.address = null;
 	//Geocoding succeeded or not
@@ -103,56 +110,56 @@ function GeocoderResult(){
 	this.status = "";
 	//Human understandeable statusStr
 	this.statusStr = null;
-	//Array of GeocoderLocation objects
+	//Array of GeocoderResult objects
 	this.locations = Array(); 
 }
 
-GeocoderResult.prototype.getAddress = function (){
+GeocoderResultSet.prototype.getAddress = function (){
   return this.address;
 }
 
-GeocoderResult.prototype.setAddress = function (address){
+GeocoderResultSet.prototype.setAddress = function (address){
   this.address = address;
 }
 
-GeocoderResult.prototype.getSuccess = function (){
+GeocoderResultSet.prototype.getSuccess = function (){
   return this.success;
 }
 
-GeocoderResult.prototype.setSuccess = function (success){
+GeocoderResultSet.prototype.setSuccess = function (success){
   this.success = success;
 }
 
-GeocoderResult.prototype.getStatus = function (){
+GeocoderResultSet.prototype.getStatus = function (){
   return this.status;
 }
 
-GeocoderResult.prototype.setStatus = function (status){
+GeocoderResultSet.prototype.setStatus = function (status){
   this.status = status;
 }
 
-GeocoderResult.prototype.getStatusStr = function (){
+GeocoderResultSet.prototype.getStatusStr = function (){
   return this.statusStr;
 }
 
-GeocoderResult.prototype.setStatusStr = function (statusStr){
+GeocoderResultSet.prototype.setStatusStr = function (statusStr){
   this.statusStr = statusStr;
 }
 
-GeocoderResult.prototype.addLocation = function (loc_data) {
-  var new_location = new GeocoderLocation(loc_data);
+GeocoderResultSet.prototype.addLocation = function (loc_data) {
+  var new_location = new GeocoderResult(loc_data);
   this.locations.push(new_location);
 }
 
-GeocoderResult.prototype.getLocation = function (num) {
+GeocoderResultSet.prototype.getLocation = function (num) {
   return this.locations[num];
 }
 
-GeocoderResult.prototype.numLocations = function (num) {
+GeocoderResultSet.prototype.numLocations = function (num) {
   return this.locations.length;
 }
 
-GeocoderResult.prototype.toHTML = function (){
+GeocoderResultSet.prototype.toHTML = function (){
   return "<strong>Geocode Request</strong>:" + 
     "<br>Status: " + this.statusStr +
     "<br>Accuracy: " + this.accuracyStr + 
@@ -161,108 +168,70 @@ GeocoderResult.prototype.toHTML = function (){
 }
 
 /****************************************************************************
- * GeocoderLocation class
+ * GeocoderResult class
  *
  * Holds information for a single geocoder result including
  * location and textual information.  Created by the geocoder service
  * object and used by the geocode requester.
 /***************************************************************************/
-function GeocoderLocation(result) {
-	if (result.address)
-		this.address = result.address;
-	else 
-		this.address = "";
-		
-	if (result.city)
-		this.city = result.city;
-	else
-		this.city = "";
-		
-	if (result.state)
-		this.state = result.state;
-	else
-		this.state = "";
-		
-	if (result.zip)
-		this.zip = result.zip;
-	else
-		this.zip = "";
-		
-	if (result.country)
-		this.country = result.country;
-	else
-		this.country = "";
-		
-	if (result.accuracy)
-		this.accuracy = result.accuracy;
-	else
-		this.accuracy = null;
-		
-	if (result.accuracyStr)
-		this.accuracyStr = result.accuracyStr;
-	else
-		this.accuracyStr = "";
-		
-	if (result.scale)
-		this.scale = result.scale;
-	else
-		this.scale = null;
-		
-	if (result.lat)
-		this.lat = parseFloat(result.lat);
-	else
-		this.lat = null;
-		
-	if (result.lng)
-		this.lng = parseFloat(result.lng);
-	else
-		this.lng = null;
-		
-	if (result.id)
-		this.id = result.id;
-	else
-		this.id = null;
+function GeocoderResult(options) {
+	this.address = "";
+	this.city = "";
+	this.state = "";
+	this.zip = "";
+	this.country = "";
+	this.accuracy = null;
+	this.accuracyStr = "";
+	this.scale = null;
+	this.lat = null;
+	this.lng = null;
+	this.id = null;
+	
+	Util.updateParams(this, options);
+	this.lat = parseFloat(this.lat);
+	this.lng = parseFloat(this.lng);
+	this.description = this.address+"<br/>"+this.city+", "+this.state+", "+this.zip+" "+this.country;
 }
 
-GeocoderLocation.prototype.getAddress = function (){
+GeocoderResult.prototype.getAddress = function (){
   return this.address;
 }
 
-GeocoderLocation.prototype.getAccuracy = function (){
+GeocoderResult.prototype.getAccuracy = function (){
   return this.accuracy;
 }
 
-GeocoderLocation.prototype.getAccuracyStr = function (){
+GeocoderResult.prototype.getAccuracyStr = function (){
   return this.accuracyStr;
 }
 
-GeocoderLocation.prototype.getLat = function (){
+GeocoderResult.prototype.getLat = function (){
   return this.lat;
 }
 
 //Trimmed to dp # of decimal places
-GeocoderLocation.prototype.getLatStr = function (dp){
+GeocoderResult.prototype.getLatStr = function (dp){
   return this.lat.toFixed(dp);
 }
 
-GeocoderLocation.prototype.getLng = function (){
+GeocoderResult.prototype.getLng = function (){
   return this.lng;
 }
 
 //Trimmed todp # of decimal places
-GeocoderLocation.prototype.getLngStr = function (dp){
+GeocoderResult.prototype.getLngStr = function (dp){
   return this.lng.toFixed(dp);
 }
 
-GeocoderLocation.prototype.getRadius = function (){
+GeocoderResult.prototype.getRadius = function (){
   return this.radius;
 }
 
-GeocoderLocation.prototype.getScale = function (){
+GeocoderResult.prototype.getScale = function (){
   return this.scale;
 }
 
-GeocoderLocation.prototype.toHTML = function () {
+GeocoderResult.prototype.toHTML = function () {
   return "Address: " + this.address + 
     "<br>Accuracy: " + this.accuracyStr +
     "<br>Scale: " + addCommas(this.scale) +

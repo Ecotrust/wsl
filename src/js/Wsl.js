@@ -14,8 +14,13 @@ function WSLocator(){
 	this.ws_data = null;
 	this.ws_layers = [];
 	this.load_msg = "";
+	this.current_popup = null;
 	
-	this.search_loc = null;
+	this.geocoder_search_string = "";
+	this.placename_search_string = "";
+	
+	//Points to current SearchResult, GeocoderResult or GeonamerResult
+	this.cur_search_result = null;
 	
 	this.num_levels = 11;
 	this.us_ws_layer_nums = [0,1,2,3,4,5];
@@ -34,6 +39,9 @@ function WSLocator(){
 	this.start_location_search = function (loc) {
 		me.location_search(loc);
 	}
+	this.start_process_placename_search = function (result) {
+		me.process_placename_search(result);
+	}
 	this.start_load_initial_ws_results = function (response) {
 		me.load_initial_ws_results(response);
 	}
@@ -48,6 +56,8 @@ function WSLocator(){
 	}
 	
 	EventController.addEventListener("GeocodeReturnEvent", this.start_process_address_search);
+	EventController.addEventListener("GeonameReturnEvent", this.start_process_placename_search);
+	EventController.addEventListener("LocSelectEvent", this.start_location_search);
 }
 
 //Initialize the OL map, map controls, and WMS layers
@@ -314,24 +324,50 @@ WSLocator.prototype.map_init = function() {
 	Event.observe('OpenLayers_Control_PanZoom_zoomworld_innerImage', 'click', this.show_sn_boundary.bindAsEventListener(this));
 }
 
-/************************* Address Search ******************************/
+/************************* Search ******************************/
 
 WSLocator.prototype.initial_search = function (search_form, search_type) {
 	//Clear any markers on map
 	load_win.set_msg_and_show("Starting search...");
 	this.clear_markers();
-	if (search_type == 'full' || search_type == 'detail') {
-		load_win.append("Geocoding address...");
-		geocoder.geocode(search_type, search_form);
-	} else if (search_type == 'ws_name') {
-		var name = $('ws_name').value;
-		if (name != 'Select One') {
-			get_ws_by_name(name, this.load_ws_results);
-		} else {
-			alert('Please select a watershed name first');
-		}
+	
+	switch (search_type) {
+
+		case 'full': 
+			load_win.append("Geocoding address...");
+			geocoder.geocode(
+				search_type, 
+				{full_address: $F('full_address')}
+			); 
+			break;
+		case 'detail':
+			load_win.append("Geocoding address...");
+			geocoder.geocode(
+				search_type, 
+				{
+					street: $F('street'), 
+					city: $F('city'),
+					state: $F('state'),
+					zip: $F('zip')
+				}
+			);
+			break;
+		case 'placename':
+			this.placename_search_string = $F('placename'); 
+			geonamer.placename_search(this.placename_search_string);
+			break;
+		case 'ws_name':
+			var name = $F('ws_name');
+			if (name != 'Select One') {
+				get_ws_by_name(name, this.load_ws_results);
+			} else {
+				alert('Please select a watershed name first');
+			}
+			break;
 	}
 }
+
+/************************* Address Search ******************************/
 
 //Process geocode query result
 WSLocator.prototype.process_address_search = function (geo_result) {
@@ -343,43 +379,37 @@ WSLocator.prototype.process_address_search = function (geo_result) {
 		load_win.append("Geocoder returned multiple results...");
 		load_win.hide();
 		var div = $('loc_select');
-		EventController.addEventListener("LocSelectEvent", this.start_location_search);
+		this.show_sn_boundary();
+		this.map.zoomToMaxExtent();
 		this.location_selector.load_dialog(geo_result);
 	} else {
 		var loc = geo_result.locations[0];
-		var search_desc = loc.address+"<br/>"+loc.city+", "+loc.state+", "+loc.zip+" "+loc.country;
-		var search_loc = new SearchLocation(search_desc, loc.getLng(), loc.getLat());
-		
 		load_win.append("Geocoding successful ("+loc.getLngStr(2)+","+loc.getLatStr(2)+")...");
-		this.create_search_marker(search_loc);
+		this.create_search_marker(loc);
 		
 		//Complete location search
-		this.location_search(search_loc);
+		this.location_search(loc);
 	}
-}
-
-WSLocator.prototype.process_geonames_search = function (geoname_result) {
-	
 }
 
 //Search for watershed given GeocoderLocation.
 //Called via LocSelectEvent
 WSLocator.prototype.location_search = function (loc) {
-	this.search_loc = loc;
+	this.cur_search_result = loc;
 	
 	//Create marker for geocoded point
 	if (this.markers.markers.length > 0) {
 		this.clear_markers();
 	}
-	this.create_search_marker(this.search_loc);
+	this.create_search_marker(this.cur_search_result);
 	
 	//Generate WKT of geocoded point
-	var the_pt = new OpenLayers.Geometry.Point(this.search_loc.lng, this.search_loc.lat);
+	var the_pt = new OpenLayers.Geometry.Point(this.cur_search_result.lng, this.cur_search_result.lat);
     the_pt = new OpenLayers.Feature.Vector(the_pt);
 	this.point_loc_wkt = this.wkt.write(the_pt);
 
 	//Get ws_data including bounds
-	this.get_initial_ws_data_by_location(this.search_loc.lng, this.search_loc.lat);
+	this.get_initial_ws_data_by_location(this.cur_search_result.lng, this.cur_search_result.lat);
 }
 
 /******************************* Map Click Search ****************************/
@@ -397,10 +427,40 @@ WSLocator.prototype.do_map_click_search = function (e) {
     var lonlat = wsl.map.getLonLatFromViewPortPx(e.xy);
 	lonlat = OpenLayers.Layer.SphericalMercator.inverseMercator(lonlat.lon, lonlat.lat);
 	var desc = "User selected location<br/>("+(lonlat.lon).toFixed(4)+","+(lonlat.lat).toFixed(4)+")";
-	var click_loc = new SearchLocation(desc, lonlat.lon, lonlat.lat);
+	var click_loc = new SearchResult(desc, lonlat.lon, lonlat.lat);
 	this.location_search(click_loc);
 	//this.get_initial_ws_data_by_location(lonlat.lon, lonlat.lat);
 }
+
+/******************************* Geoname Search ****************************/
+
+//Process placename search result
+WSLocator.prototype.process_placename_search = function (result_set) {
+	result_set.update({search_string: this.placename_search_string});
+	console.log(result_set);
+	
+	if (!result_set.success || result_set.num_results < 1) {
+		load_win.append("<b>Placename search returned no results, please try again.</b>");
+	} else if (result_set.num_results > 1) {
+		//Too many results
+		load_win.append("Placename search returned multiple results...");
+		load_win.hide();
+		var div = $('loc_select');
+		this.show_sn_boundary();
+		this.map.zoomToMaxExtent();
+		this.location_selector.load_dialog(result_set);
+	} else {
+		var geo_result = result_set.geonames[0];
+		
+		load_win.append("Geoname search successful ("+geo_result.getLngStr(2)+","+geo_result.getLatStr(2)+")...");
+		this.create_search_marker(geo_result);
+		
+		//Complete geoname search
+		this.location_search(geo_result);
+	}
+}
+
+/******************************* Other ****************************/
 
 //Query watershed data given its name
 WSLocator.prototype.get_ws_by_name = function (name) {
@@ -411,7 +471,7 @@ WSLocator.prototype.get_ws_by_name = function (name) {
 WSLocator.prototype.get_initial_ws_data_by_location = function (lng, lat) {
 	this.hide_sn_boundary();
 	load_win.append("Searching watersheds...");
-    request = new OpenLayers.Ajax.Request('php/remote_proxy.php',
+    request = new OpenLayers.Ajax.Request('php/ws_search_proxy.php',
     {
             parameters: 'action=get&func=get_initial_ws_data_by_location&lng='+lng+'&lat='+lat,
             method: 'get',
@@ -422,7 +482,7 @@ WSLocator.prototype.get_initial_ws_data_by_location = function (lng, lat) {
 
 //Query watershed data given a point location, region and level 
 WSLocator.prototype.get_ws_lyr_data_by_location = function (lat, lng, region, lyr_num, callback) {
-    request = new OpenLayers.Ajax.Request('php/remote_proxy.php',
+    request = new OpenLayers.Ajax.Request('php/ws_search_proxy.php',
     {
             parameters: 'action=get&func=get_ws_lyr_data_by_location&lng='+lng+'&lat='+lat+"&lyr_num="+lyr_num+"&region="+region,
             method: 'get',
@@ -620,7 +680,7 @@ WSLocator.prototype.level_change_event = function (new_ws_lyr_num) {
 		this.rem_cur_ws_wms_lyr();
 		this.cur_ws_lyr_num = new_ws_lyr_num;
 		//Fetch watershed data
-		this.get_ws_lyr_data_by_location(this.search_loc.lat, this.search_loc.lng, this.get_cur_region(), new_ws_lyr_num, this.finish_level_change_event);
+		this.get_ws_lyr_data_by_location(this.cur_search_result.lat, this.cur_search_result.lng, this.get_cur_region(), new_ws_lyr_num, this.finish_level_change_event);
 	}
 }
 
@@ -722,11 +782,12 @@ WSLocator.prototype.show_sn_boundary = function() {
 	}
 }
 
-//Given a SearchLocation creates a marker
+//Given a SearchResult creates a marker
 WSLocator.prototype.create_search_marker = function (search_loc) {
 	var lng = search_loc.lng;
 	var lat = search_loc.lat;
 
+	
 	//Create location marker on map
 
 	//Convert wgs84 to mercator meters
@@ -735,13 +796,14 @@ WSLocator.prototype.create_search_marker = function (search_loc) {
 	var popupSize = new OpenLayers.Size(80,80);
 //	var icon = new OpenLayers.Icon('/wiser.png',size,offset);
 	feature = new OpenLayers.Feature(this.bmap, lonlat);
-	this.popup = feature.createPopup(false);
-	this.popup.setOpacity(0.9);
-	this.popup.setBackgroundColor("white");
-	this.popup.setContentHTML(search_loc.description);
+	var popup = feature.createPopup(false);
+	feature.my_popup = popup;
+	popup.setOpacity(0.9);
+	popup.setBackgroundColor("white");
+	popup.setContentHTML(search_loc.description);
 	marker = feature.createMarker();
 	this.markers.addMarker(marker);
-	marker.events.register("mousedown", feature, this.start_marker_click);
+	marker.events.register("mousedown", popup, this.marker_click);
 }
 
 //Convert spherical coordinates (wgs84) into mercator projects used
@@ -763,7 +825,7 @@ WSLocator.prototype.zoom_to = function (lng, lat, zoom_level) {
 }
 
 WSLocator.prototype.marker_click = function (evt) {
-	var closed = false;
+/*	var closed = false;
 	if (current_popup != null) {
 		if (current_popup == this.popup)
 			closed = true;
@@ -774,7 +836,19 @@ WSLocator.prototype.marker_click = function (evt) {
 		current_popup = this.popup;
 		this.map.addPopup(current_popup);
 	}
-
+*/
+	var is_closed = false;
+	if (wsl.current_popup != null) {
+		if (wsl.current_popup == this)
+			is_closed = true;
+		wsl.map.removePopup(wsl.current_popup);
+		wsl.current_popup = null;
+	}
+		
+	if (current_popup == null && !is_closed) {
+		wsl.current_popup = this;
+		wsl.map.addPopup(this, true);
+	}
 	Event.stop(evt);
 }
 
@@ -790,10 +864,15 @@ WSLocator.prototype.clear_map = function () {
 	}
 }
 
-//Holds basic info about the current search location.  Just a basic type
-//that might be populated with data from a GeocoderLocation or a 
-//GeonameLocation.  Used as input for creating search location marker.
-function SearchLocation(description, lng, lat) {
+/****************************************************************************
+ * SearchResult class
+ *
+ * Holds basic info about the current search location.  Just a basic type.
+ * Essentially a subset of GeocoderResult or GeonamerResult.  This should
+ * probably become a parent class 
+/***************************************************************************/
+function SearchResult(description, lng, lat) {
+	this.type = 'basic';
 	this.description = description;
 	this.lng = lng;
 	this.lat = lat;
@@ -810,37 +889,91 @@ function LocationSelector(){
 	this.georesult = null;
 }
 
-LocationSelector.prototype.load_dialog = function (georesult) {
-	this.georesult = georesult;
-	var sel_html = "<table cellspacing='8'>";
-	for (var i=0; i<georesult.numLocations(); i++) {
-		var loc = georesult.getLocation(i);
-		var lng = loc.lng;
-		var lat = loc.lat;
-		var address = loc.address;
-		var city = loc.city;
-		var state = loc.state;
-		var zip = loc.zip;
-		var country = loc.country;
-
-		//Add selection entry
-		sel_html += "<tr>";
-		sel_html += "<td><input type='button' value='Select' id='"+i+"' onclick='wsl.location_selector.select(this.id); wsl.location_selector.close()'>";
-		sel_html += " <input type='button' value='View On Map' id='"+i+"' onclick='wsl.zoom_to("+lng+", "+lat+", 13)'></td>";
-		sel_html += "<td>"+address+"<br/>";
-		sel_html += city+", "+state+", "+zip+" "+country+"</td>";
-		sel_html += "</tr>";
-
-		//Add marker
-		var description = address+"<br/>"+city+", "+state+", "+zip+" "+country;
-		var search_loc = new SearchLocation (description, loc.getLng(), loc.getLat());
-		wsl.create_search_marker(search_loc);
+LocationSelector.prototype.load_dialog = function (search_results) {
+	var sel_html = null;
+	
+	if (!search_results) {
+		alert('Location Selector: search result not found');
 	}
-	sel_html += "</table>";
+	this.search_results = search_results;
+	console.log(search_results.type);
+	
+	switch (search_results.type) {
+		case 'GeocoderResultSet':
+			sel_html = "<table cellspacing='8'>";
+			for (var i=0; i<search_results.numLocations(); i++) {
+				var loc = search_results.getLocation(i);
+				var lng = loc.lng;
+				var lat = loc.lat;
+				var description = loc.description;
+				var address = loc.address;
+				var city = loc.city;
+				var state = loc.state;
+				var zip = loc.zip;
+				var country = loc.country;				
+
+				var max_extent = wsl.map.getMaxExtent();
+				var within_map = max_extent.containsLonLat(wsl.sphere_to_merc(lng,lat)); 
+				if (within_map) {
+					//Add selection entry
+					sel_html += "<tr>";
+					sel_html += "<td><input type='button' value='Select' id='"+i+"' onclick='wsl.location_selector.select(this.id); wsl.location_selector.close()'>";
+					sel_html += " <input type='button' value='View On Map' id='"+i+"' onclick='wsl.zoom_to("+lng+", "+lat+", 13)'></td>";
+					sel_html += "<td>"+address+"<br/>";
+					sel_html += city+", "+state+", "+zip+" "+country+"</td>";
+					sel_html += "</tr>";
+			
+					//Add marker
+					wsl.create_search_marker(loc);
+				}
+			}
+			sel_html += "</table>";
+			break;
+		case 'GeonamerResultSet':
+			var num_in_map = 0;
+			
+			sel_html = "<table cellspacing='8'>";
+			sel_html += "<tr><td colspan='2'>First "+search_results.num_results+" matches returned";
+			
+			for (var i=0; i<search_results.num_results; i++) {
+				var geoname = search_results.getResult(i);
+				var max_extent = wsl.map.getMaxExtent();
+				var within_map = max_extent.containsLonLat(wsl.sphere_to_merc(geoname.lng,geoname.lat));
+				if (within_map) {
+					num_in_map++;
+					geoname.within_map = within_map;
+				}				
+			}
+			sel_html += "<tr><td colspan='2'>"+num_in_map+" of those results are within <a href='http://salmonnation.com'>Salmon Nation</a><br/>";	
+			for (var i=0; i<search_results.num_results; i++) {
+				var geoname = search_results.getResult(i);
+				var lng = geoname.lng;
+				var lat = geoname.lat;
+				var description = geoname.description;
+
+				if (geoname.within_map) {	
+					num_in_map++;	
+					//Add selection entry 
+					sel_html += "<tr>";
+					sel_html += "<td><input type='button' value='Select' id='"+i+"' onclick='wsl.location_selector.select(this.id); wsl.location_selector.close()'>";
+					sel_html += " <input type='button' value='View On Map' id='"+i+"' onclick='wsl.zoom_to("+lng+", "+lat+", 13)'></td>";
+					sel_html += "<td>"+geoname.name+"</td>";
+					sel_html += "</tr>";
+			
+					//Add marker
+					wsl.create_search_marker(geoname);
+				}
+			}
+			
+			if (num_in_map == 0)
+			
+			sel_html += "</table>";
+			break;
+	}
 	
 	// Create window with scrollable text
 	if (!$('loc_select')) {
-		this.sel_win = new Window('loc_select', {className: "bluelighting",  width:340, height:200, zIndex: 100, resizable: true, title: "Multiple Results, Select One", showEffect:Element.show, hideEffect: Effect.Fade, destroyOnClose: true})
+		this.sel_win = new Window('loc_select', {className: "bluelighting",  width:340, height:200, zIndex: 100, resizable: true, title: "Multiple Results, Select One", hideEffect: Effect.Fade, destroyOnClose: true})
 	}
 	
 	//Load with location choices
@@ -849,9 +982,20 @@ LocationSelector.prototype.load_dialog = function (georesult) {
 }
 
 LocationSelector.prototype.select = function (location_num) {
-	console.log(location_num);
-	var loc = this.georesult.getLocation(location_num);
-	EventController.dispatchEvent("LocSelectEvent", new CustomEvent.Events.LocSelectEvent(loc));
+	wsl.hide_sn_boundary();
+	switch (this.search_results.type) {
+		case 'GeocoderResultSet':
+			var result = this.search_results.getLocation(location_num);
+			load_win.append("Selected location at ("+result.getLngStr(2)+","+result.getLatStr(2)+")");
+			EventController.dispatchEvent("LocSelectEvent", new CustomEvent.Events.LocSelectEvent(result));
+			break;
+		case 'GeonamerResultSet':
+			var result = this.search_results.getResult(location_num);
+			load_win.append("Selected '"+result.name+"' at ("+result.getLngStr(2)+","+result.getLatStr(2)+")");
+			EventController.dispatchEvent("LocSelectEvent", new CustomEvent.Events.LocSelectEvent(result));
+			break;
+	}
+	load_win.show();
 }
 
 LocationSelector.prototype.close = function () {
@@ -861,8 +1005,7 @@ LocationSelector.prototype.close = function () {
 function LoadWindow(){
 	this.msg_cont = "";
 	this.msg = "";
-	//this.win = Window('load', {className: "bluelighting",  width:200, height:200, zIndex: 100, resizable: false, title: "", showEffect:Element.show, hideEffect: Effect.DropOut})
-	this.win = new Window({className: "bluelighting", width:300, height:120, zIndex: 100, resizable: false, title: "Status", hideEffect: Effect.Fade, draggable:true})
+	this.win = new Window({className: "bluelighting", width:300, height:120, zIndex: 100, resizable: false, title: "Status", showEffect: Effect.Appear, draggable:true})
 
 	var me = this;
 	this.close_in = function (x) {

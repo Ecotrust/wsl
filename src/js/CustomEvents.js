@@ -55,3 +55,12 @@ CustomEvent.Events.GeocodeReturnEvent.prototype = {
 		this.data = data;
 	}
 };
+
+// Geoname return event. data param expected to be a GeonamerResult
+CustomEvent.Events.GeonameReturnEvent = Class.create();
+CustomEvent.Events.GeonameReturnEvent.prototype = {
+	initialize : function(data){
+		this.type = "CustomEvent.Events.GeonameReturnEvent";
+		this.data = data;
+	}
+};
