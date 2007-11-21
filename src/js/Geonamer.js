@@ -59,7 +59,7 @@ Geonamer.prototype.do_process_placename_search = function(transport) {
 	for (var i=0; i<search_res.geonames.length; i++) {
 		geo_result_set.addGeoResult(search_res.geonames[i]);
 	}
-	EventController.dispatchEvent("GeonameReturnEvent", new CustomEvent.Events.LocSelectEvent(geo_result_set));
+	EventController.dispatchEvent("GeonameReturnEvent", new CustomEvent.Events.GeonameReturnEvent(geo_result_set));
 }
 
 /****************************************************************************

@@ -752,8 +752,8 @@ WSLocator.prototype.zoom_to_cur_ws = function () {
 
 WSLocator.prototype.rem_cur_ws_wms_lyr = function () {
 	var cur_lyr = this.get_cur_ws_lyr();
-	if (cur_lyr) {
-		this.map.removeLayer(this.get_cur_ws_lyr());
+	if (cur_lyr && this.map.getLayerIndex(cur_lyr) >= 0) {
+		this.map.removeLayer(cur_lyr);
 	}	
 }
 

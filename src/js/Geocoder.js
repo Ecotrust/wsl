@@ -45,7 +45,7 @@ YahooGeocoder.prototype.process_result = function(transport) {
 	//Verify there is a result
 	if (!result_obj) {
 		geo_result.setSuccess(false);
-		EventController.dispatchEvent("GeocodeReturnEvent", new CustomEvent.Events.LocSelectEvent(geo_result));
+		EventController.dispatchEvent("GeocodeReturnEvent", new CustomEvent.Events.GeocodeReturnEvent(geo_result));
 		//this.result_callback(geo_result);
 		return;
 	} else {
