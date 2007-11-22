@@ -45,6 +45,9 @@ function WSLocator(){
 	this.start_load_initial_ws_results = function (response) {
 		me.load_initial_ws_results(response);
 	}
+	this.load_ws_name_completions = function (response) {
+		me.do_load_ws_name_completions(response);
+	}
 	this.finish_level_change_event = function (response) {
 		me.do_finish_level_change_event(response);
 	}
@@ -357,11 +360,17 @@ WSLocator.prototype.initial_search = function (search_form, search_type) {
 			geonamer.placename_search(this.placename_search_string);
 			break;
 		case 'ws_name':
-			var name = $F('ws_name');
-			if (name != 'Select One') {
-				get_ws_by_name(name, this.load_ws_results);
-			} else {
-				alert('Please select a watershed name first');
+			if ($F('ws_name').length > 1) {
+				var name = $F('ws_name');
+				var region = $F('ws_region');
+				if (name && region)
+					var name = this.ws_name_data[this.cur_ws_name_index].name;
+					var lng = this.ws_name_data[this.cur_ws_name_index].lng;
+					var lat = this.ws_name_data[this.cur_ws_name_index].lat;
+					var lonlat = OpenLayers.Layer.SphericalMercator.inverseMercator(lng, lat);
+					var desc = name+"<br/>("+(lonlat.lon).toFixed(4)+","+(lonlat.lat).toFixed(4)+")";
+					var ws_loc = new SearchResult(desc, lonlat.lon, lonlat.lat);
+					this.location_search(ws_loc);	
 			}
 			break;
 	}
@@ -429,7 +438,6 @@ WSLocator.prototype.do_map_click_search = function (e) {
 	var desc = "User selected location<br/>("+(lonlat.lon).toFixed(4)+","+(lonlat.lat).toFixed(4)+")";
 	var click_loc = new SearchResult(desc, lonlat.lon, lonlat.lat);
 	this.location_search(click_loc);
-	//this.get_initial_ws_data_by_location(lonlat.lon, lonlat.lat);
 }
 
 /******************************* Geoname Search ****************************/
@@ -460,7 +468,64 @@ WSLocator.prototype.process_placename_search = function (result_set) {
 	}
 }
 
-/******************************* Other ****************************/
+/***************************** Watershed Name Search *************************/
+
+//Given a partial ws name, search for possible completions
+WSLocator.prototype.ws_name_completion = function (name, region) {
+    request = new OpenLayers.Ajax.Request('php/ws_search_proxy.php',
+    {
+            parameters: 'action=get&func=search_ws_by_partial_name&name='+name+'&region='+region,
+            method: 'get',
+            onSuccess: this.load_ws_name_completions,
+            onFailure: this.default_fail
+    });
+}
+
+WSLocator.prototype.do_load_ws_name_completions = function (transport) {
+	//Extract ws data
+	var response = transport.responseText;
+	
+	//Set global ws data
+	this.ws_name_data = parseJSON(response);
+	
+	var html = "";
+    for (var i=0;i< this.ws_name_data.length;i++) {
+      // for every ws name record we create a html div 
+      // each div gets an id using the array index for later retrieval 
+      // define mouse event handlers to highlight places on mouseover
+      // and to select a place on click
+      // all events receive the postalcode array index as input parameter
+      html += "<div class='suggestions' id=name"+i+" onmousedown='suggestDown("+i+")' onmouseover='suggestOver("+i+")' onmouseout='suggestOut("+i+")'>"+this.ws_name_data[i].name+'</div>';
+    }
+    $('ws_name_suggest').update(html);
+	$('ws_name_suggest').style.visibility = "visible";
+}
+
+//Hide suggestion list
+function closeSuggest() {
+  $('ws_name_suggest').innerHTML = '';
+  $('ws_name_suggest').style.visibility = 'hidden';
+}
+
+//Remove highlight
+function suggestOut(num) {
+  $('name'+ num).className = 'suggestions';
+}
+
+//Load user selection in ws_name input
+function suggestDown(num) {
+  closeSuggest();
+  $('ws_name').value = wsl.ws_name_data[num].name;
+  wsl.cur_ws_name_index = num;
+}
+
+//Highlight ws name
+function suggestOver(num) {
+	var cur = $('name'+ num); 
+  	cur.className = 'suggestionMouseOver';
+}
+
+/************************************ Other *********************************/
 
 //Query watershed data given its name
 WSLocator.prototype.get_ws_by_name = function (name) {
@@ -476,7 +541,7 @@ WSLocator.prototype.get_initial_ws_data_by_location = function (lng, lat) {
             parameters: 'action=get&func=get_initial_ws_data_by_location&lng='+lng+'&lat='+lat,
             method: 'get',
             onSuccess: this.start_load_initial_ws_results,
-            onFailure: this.alert_fail
+            onFailure: this.default_fail
     });
 }
 
@@ -487,11 +552,11 @@ WSLocator.prototype.get_ws_lyr_data_by_location = function (lat, lng, region, ly
             parameters: 'action=get&func=get_ws_lyr_data_by_location&lng='+lng+'&lat='+lat+"&lyr_num="+lyr_num+"&region="+region,
             method: 'get',
             onSuccess: callback,
-            onFailure: this.alert_fail
+            onFailure: this.default_fail
     });
 }
 
-WSLocator.prototype.alert_fail = function (response) {
+WSLocator.prototype.default_fail = function (response) {
 	load_win.append("<b>Request failed: "+response+"<br/>");
 }
 

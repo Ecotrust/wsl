@@ -34,6 +34,22 @@
               </tr>
 			  <tr>
                 <td colspan='2' align='center'><strong>-OR-</strong></td>
-              </tr>              <tr>                <td align='right'>Watershed Name:</td>                <td align='right'><select id='ws_name' name='ws_name'>                    <option>Select One</option>                    <option>Johnson Creek (OR)</option>                  </select></td>              </tr>              <tr>                <td></td>                <td align='right'><input type="submit" value="Search" class="button" onClick="wsl.initial_search('locator_search_form', 'ws_name')"></td>              </tr>            </table>
+              </tr>			  <tr>
+			    <td align='right'>Select a region:</td>
+			    <td align='right'>
+			      <select id='ws_region' name='ws_region' onChange="$('ws_name_row').show(); $('ws_name_submit_row').show()">
+					<option value=''></option>
+			        <option value='us'>U.S.</option>
+			        <option value='bc'>Canada B.C.</option>
+			      </select>
+			    </td>
+			  </tr>
+              <tr id='ws_name_row' style='display: none'>                <td align='right'>Enter Partial<br/>Watershed Name:</td>
+                <td align='right'>
+                  <span style="position: relative; z-index: 24;">
+                    <input type='text' id='ws_name' name='ws_name' onblur='closeSuggest()' onKeyUp="if ($F('ws_name').length > 1) wsl.ws_name_completion($F('ws_name'), $F('ws_region'));">
+                    <span id='ws_name_suggest' name='ws_name_suggest'></span>
+                  </span>
+                </td>              </tr>              <tr id='ws_name_submit_row' style='display:none'>                <td></td>                <td align='right'><input type="submit" value="Search" class="button" onClick="wsl.initial_search('locator_search_form', 'ws_name')"></td>              </tr>            </table>
 			<br/>
             *Note, this form will search for watershed data at the smallest level available first.  From there you can view larger level watersheds for a location by using the watershed ladder.            <p>        </div></td>      <td><div id="map"></div></td>    </tr>    <tr>      <td><div id='ws_stats'><h4>Watershed Stats</h4>          <div id='ws_stats_content'>Not Available</div>        </div></td>      <td><div id='ws_ladder'><h4>Watershed Ladder</h4>          <div id='ws_ladder_content'>Not Available</div>        </div></td>    </tr>  </table></div><div id="leftnav">  <? include("../includes/sidenav.html"); ?></div><div id="footer_breadcrumb">  <p class="breadcrumb"><strong>You are here:</strong><br />    <a href="/">Inforain.org</a> &raquo; Watershed Locator</p></div><div id="footer" class="smalltext">  <? include("../includes/bottomnav.html"); ?></div></body></html>
