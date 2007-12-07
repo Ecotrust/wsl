@@ -3,6 +3,7 @@
  *
  * Manages OL map, watershed WMS layers and watershed data requests
 /***************************************************************************/
+
 function WSLocator(){
 	this.bmap = null;
 	this.markers = null;
@@ -73,8 +74,7 @@ WSLocator.prototype.map_init = function() {
         projection: "EPSG:900913",
         units: "m",
         maxResolution: 156543.0339,
-        maxExtent: new OpenLayers.Bounds(-20017940, 3561354,
-                                         -12300000, 11545048),	
+        maxExtent: new OpenLayers.Bounds(-20017940, 3561354, -12300000, 11545048)
     };
 
     this.map = new OpenLayers.Map('map', this.options);
@@ -83,11 +83,13 @@ WSLocator.prototype.map_init = function() {
     this.bmap = new OpenLayers.Layer.Google(
         "Google Base Map",
         {
+        	type: G_PHYSICAL_MAP,
  			'wrapDateLine':true,
-        	'maxZoomLevel':18, 
+        	'maxZoomLevel':16, 
         	'sphericalMercator': true
         }
     );
+
 
     // Yahoo base map
 //    this.bmap = new OpenLayers.Layer.Yahoo(
@@ -110,7 +112,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 
 
@@ -129,7 +131,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 	this.ws_layers[0] = us_1_wms_lyr;
 
@@ -147,7 +149,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 	this.ws_layers[1] = us_2_wms_lyr;
 
@@ -165,7 +167,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 	this.ws_layers[2] = us_3_wms_lyr;
 
@@ -183,7 +185,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 	this.ws_layers[3] = us_4_wms_lyr; 
 
@@ -201,7 +203,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 	this.ws_layers[4] = us_5_wms_lyr;
 
@@ -219,7 +221,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 	this.ws_layers[5] = us_6_wms_lyr;
 
@@ -238,7 +240,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 	this.ws_layers[6] = bc_3_wms_lyr;
 
@@ -256,7 +258,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 	this.ws_layers[7] = bc_4_wms_lyr;
 
@@ -274,7 +276,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 	this.ws_layers[8] = bc_6_wms_lyr;
 
@@ -294,7 +296,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 	this.ws_layers[9] = yukon_3_wms_lyr;
 	
@@ -312,7 +314,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.5} 
+			opacity: 0.4} 
 	);
 	this.ws_layers[10] = yukon_4_wms_lyr;
 
@@ -445,7 +447,7 @@ WSLocator.prototype.do_map_click_search = function (e) {
 //Process placename search result
 WSLocator.prototype.process_placename_search = function (result_set) {
 	result_set.update({search_string: this.placename_search_string});
-	console.log(result_set);
+	//console.log(result_set);
 	
 	if (!result_set.success || result_set.num_results < 1) {
 		load_win.append("<b>Placename search returned no results, please try again.</b>");
@@ -529,7 +531,7 @@ function suggestOver(num) {
 
 //Query watershed data given its name
 WSLocator.prototype.get_ws_by_name = function (name) {
-	console.log(name)
+	//console.log(name)
 }
 
 //Query watershed data given a point location
@@ -569,7 +571,7 @@ WSLocator.prototype.load_initial_ws_results = function (transport) {
 	//Set global ws data
 	var new_ws_data = parseJSON(response);
 	
-	console.log(new_ws_data);
+	//console.log(new_ws_data);
 	
 	if (!new_ws_data) {
 		load_win.append("<b>Watershed search returned no results.</b>");
@@ -610,7 +612,7 @@ WSLocator.prototype.load_initial_ws_results = function (transport) {
 	for (var i=0; i<this.num_levels; i++) {
 		if (this.ws_data.ws_level_data[i]) {
 			
-			ws_ladder_html += "<tr align='center'><td>"+this.ws_data.ws_level_data[i].level+"</td><td>"+this.ws_data.ws_level_data[i].name+"</td><td><input type='button' value='Go To' onclick='wsl.level_change_event("+i+")'></td></tr>";
+			ws_ladder_html += "<tr align='center'><td>"+this.ws_data.ws_level_data[i].level+"</td><td>"+this.ws_data.ws_level_data[i].name+"</td><td><input type='button' class='button' value='Go To' onclick='wsl.level_change_event("+i+")'></td></tr>";
 		}
 	}
 	ws_ladder_html += "</table>";
@@ -757,7 +759,7 @@ WSLocator.prototype.do_finish_level_change_event = function (transport) {
 	var response = transport.responseText;
 	//Store ws data
 	var ws_level_data = parseJSON(response);
-	console.log(ws_level_data);
+	//console.log(ws_level_data);
 	this.set_ws_level_data(this.cur_ws_lyr_num, ws_level_data);
 	//Update cur WMS layer params
 	this.update_ws_wms_params();
@@ -961,7 +963,7 @@ LocationSelector.prototype.load_dialog = function (search_results) {
 		alert('Location Selector: search result not found');
 	}
 	this.search_results = search_results;
-	console.log(search_results.type);
+	//console.log(search_results.type);
 	
 	switch (search_results.type) {
 		case 'GeocoderResultSet':
@@ -982,8 +984,8 @@ LocationSelector.prototype.load_dialog = function (search_results) {
 				if (within_map) {
 					//Add selection entry
 					sel_html += "<tr>";
-					sel_html += "<td><input type='button' value='Select' id='"+i+"' onclick='wsl.location_selector.select(this.id); wsl.location_selector.close()'>";
-					sel_html += " <input type='button' value='View On Map' id='"+i+"' onclick='wsl.zoom_to("+lng+", "+lat+", 13)'></td>";
+					sel_html += "<td><input type='button' class='button' value='Select' id='"+i+"' onclick='wsl.location_selector.select(this.id); wsl.location_selector.close()'>";
+					sel_html += " <input type='button' class='button' value='View On Map' id='"+i+"' onclick='wsl.zoom_to("+lng+", "+lat+", 13)'></td>";
 					sel_html += "<td>"+address+"<br/>";
 					sel_html += city+", "+state+", "+zip+" "+country+"</td>";
 					sel_html += "</tr>";
@@ -1020,8 +1022,8 @@ LocationSelector.prototype.load_dialog = function (search_results) {
 					num_in_map++;	
 					//Add selection entry 
 					sel_html += "<tr>";
-					sel_html += "<td><input type='button' value='Select' id='"+i+"' onclick='wsl.location_selector.select(this.id); wsl.location_selector.close()'>";
-					sel_html += " <input type='button' value='View On Map' id='"+i+"' onclick='wsl.zoom_to("+lng+", "+lat+", 13)'></td>";
+					sel_html += "<td><input type='button' class='button' value='Select' id='"+i+"' onclick='wsl.location_selector.select(this.id); wsl.location_selector.close()'>";
+					sel_html += " <input type='button' class='button' value='View On Map' id='"+i+"' onclick='wsl.zoom_to("+lng+", "+lat+", 13)'></td>";
 					sel_html += "<td>"+geoname.name+"</td>";
 					sel_html += "</tr>";
 			

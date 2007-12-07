@@ -28,7 +28,7 @@ Geonamer.prototype.do_process_placename_search = function(transport) {
 	//Extract and decode results
 	var json_result = transport.responseText;
 	var search_res = parseJSON(json_result);
-	console.log(search_res);
+	//console.log(search_res);
 
 	//Create new object to hold results
 	var geo_result_set = new GeonamerResultSet();
