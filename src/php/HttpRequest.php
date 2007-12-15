@@ -1,8 +1,15 @@
 <?php
-
-//This class provides a workaround for servers without Curl or the use of fopen
-//to pull down content via a URL (like on Wanda with PHP 4.old.as.hell!!!)
-//Taken from http://www.hiveminds.co.uk/node/3198
+/****************************************************************************
+ * HTTPRequest class
+ *
+ * Assumed Public Domain, no licensing given
+ * No author given
+ * Taken from http://www.hiveminds.co.uk/node/3198
+ *  
+ * @summary: 	This class provides a workaround for servers without Curl or
+ * the use of fopen to pull down content via a URL (like on Wanda with 
+ * PHP 4.old.as.hell!!!)
+ ***************************************************************************/
 
 //$r = new HTTPRequest('http://www.php.net');
 //echo $r->DownloadToString();

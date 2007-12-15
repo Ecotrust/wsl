@@ -1,4 +1,14 @@
-@CHARSET "ISO-8859-1";h1 { font-size: 1.8em; margin:0; }h2 { font-size: 1.6em; margin: 0 0 0.5em 0; }h3 { font-size: 1.4em; margin: 0 0 0.5em 0; }h4 { font-size: 1.2em; margin: 0 0 0.5em 0; }th { font-size: 0.85em; background-color: #fff; }#large_form_container {	border: 1px solid #ccc;	background:#f2f2f2;	padding: 8px;	margin: 0px 8px 8px 0px;	height: 530px;	width: 220px;	-moz-border-radius:8px;	border-radius:8px;	float:left;}
+@CHARSET "ISO-8859-1";
+
+/****************************************************************************
+ * WSLocator Stylesheet
+ *
+ * @copyright	2007 Ecotrust
+ * @author		Tim Welch, Andrew Fuller
+ * @contact		twelch at ecotrust dot org
+ * @license		GNU GPL 2 (See LICENSE.TXT for the full license)
+ ***************************************************************************/
+h1 { font-size: 1.8em; margin:0; }h2 { font-size: 1.6em; margin: 0 0 0.5em 0; }h3 { font-size: 1.4em; margin: 0 0 0.5em 0; }h4 { font-size: 1.2em; margin: 0 0 0.5em 0; }th { font-size: 0.85em; background-color: #fff; }#large_form_container {	border: 1px solid #ccc;	background:#f2f2f2;	padding: 8px;	margin: 0px 8px 8px 0px;	height: 530px;	width: 220px;	-moz-border-radius:8px;	border-radius:8px;	float:left;}
 #map_outer {
 	border: 1px solid #ccc;
 	background:#f2f2f2;
