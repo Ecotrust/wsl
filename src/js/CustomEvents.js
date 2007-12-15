@@ -1,5 +1,6 @@
 /**
  * @author toddcullen
+ * http://forwarddevelopment.blogspot.com/2007/06/updated-custom-event-system-for.html
  */
 CustomEvent = {};
 CustomEvent.Events = {};
