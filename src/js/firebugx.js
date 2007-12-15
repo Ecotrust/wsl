@@ -1,4 +1,3 @@
-
 if (!window.console || !console.firebug)
 {
     var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",

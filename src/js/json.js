@@ -1,6 +1,12 @@
 /*
     http://www.json.org/json.js
 
+	Public Domain
+
+    No warranty expressed or implied. Use at your own risk.
+
+    See http://www.JSON.org/js.html
+ 
     json.js
     2006-12-06
 

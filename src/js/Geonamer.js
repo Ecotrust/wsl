@@ -1,3 +1,15 @@
+/****************************************************************************
+ * Geonamer class
+ *
+ * @copyright	2007 Ecotrust
+ * @author		Tim Welch
+ * @contact		twelch at ecotrust dot org
+ * @license		GNU GPL 2 (See LICENSE.TXT for the full license)
+ *  
+ * @summary: 	client for submitting and processing requests to the free 
+ * 				geonames web service
+ ***************************************************************************/
+
 // This library assumes the use of the prototype library for AJAX requests.  If using 
 // a different library simply replace them as needed in the search functions.
 
