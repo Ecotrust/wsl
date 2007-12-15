@@ -16,6 +16,7 @@ function WSLocator(){
 	this.ws_layers = [];
 	this.load_msg = "";
 	this.current_popup = null;
+	this.cur_level_display = null;
 	
 	this.geocoder_search_string = "";
 	this.placename_search_string = "";
@@ -327,6 +328,12 @@ WSLocator.prototype.map_init = function() {
 	this.wkt = new OpenLayers.Format.WKT();
 	
 	Event.observe('OpenLayers_Control_PanZoom_zoomworld_innerImage', 'click', this.show_sn_boundary.bindAsEventListener(this));
+	
+    this.map.events.register(
+    	"click", 
+    	this.map, 
+    	wsl.map_click_search
+    );
 }
 
 /************************* Search ******************************/
@@ -425,16 +432,8 @@ WSLocator.prototype.location_search = function (loc) {
 
 /******************************* Map Click Search ****************************/
 
-WSLocator.prototype.turn_on_map_click_search = function () {
-    this.map.events.register(
-    	"click", 
-    	this.map, 
-    	wsl.map_click_search
-    );
-}
-
 WSLocator.prototype.do_map_click_search = function (e) {
-	this.map.events.unregister("click", this.map, this.map_click_search);
+	//this.map.events.unregister("click", this.map, this.map_click_search);
     var lonlat = wsl.map.getLonLatFromViewPortPx(e.xy);
 	lonlat = OpenLayers.Layer.SphericalMercator.inverseMercator(lonlat.lon, lonlat.lat);
 	var desc = "User selected location<br/>("+(lonlat.lon).toFixed(4)+","+(lonlat.lat).toFixed(4)+")";
@@ -447,7 +446,6 @@ WSLocator.prototype.do_map_click_search = function (e) {
 //Process placename search result
 WSLocator.prototype.process_placename_search = function (result_set) {
 	result_set.update({search_string: this.placename_search_string});
-	//console.log(result_set);
 	
 	if (!result_set.success || result_set.num_results < 1) {
 		load_win.append("<b>Placename search returned no results, please try again.</b>");
@@ -536,7 +534,7 @@ WSLocator.prototype.get_ws_by_name = function (name) {
 
 //Query watershed data given a point location
 WSLocator.prototype.get_initial_ws_data_by_location = function (lng, lat) {
-	this.hide_sn_boundary();
+
 	load_win.append("Searching watersheds...");
     request = new OpenLayers.Ajax.Request('php/ws_search_proxy.php',
     {
@@ -578,8 +576,10 @@ WSLocator.prototype.load_initial_ws_results = function (transport) {
 		return;
 	} else if (new_ws_data.error) {
 		load_win.append("<b>"+new_ws_data.error+"</b>");
+		this.show_sn_boundary();
 		return;
 	} else {
+		this.hide_sn_boundary();
 		this.ws_data = new_ws_data;
 	}
 
@@ -611,14 +611,34 @@ WSLocator.prototype.load_initial_ws_results = function (transport) {
 	var ws_ladder_html = "<table id='ws_ladder_table'><tr><th>Level</th><th>Name</th><th></th></tr>";
 	for (var i=0; i<this.num_levels; i++) {
 		if (this.ws_data.ws_level_data[i]) {
-			
-			ws_ladder_html += "<tr align='center'><td>"+this.ws_data.ws_level_data[i].level+"</td><td>"+this.ws_data.ws_level_data[i].name+"</td><td><input type='button' class='button' value='Go To' onclick='wsl.level_change_event("+i+")'></td></tr>";
+			var data = this.ws_data.ws_level_data[i];
+			ws_ladder_html += "<tr align='center'><td class='cur_level_reg' id='level_"+data.level+"_td'>"+data.level+"</td><td>"+data.name+"</td><td><input type='button' class='button' value='Go To' onclick='wsl.level_change_event("+i+"); wsl.toggle_cur_level_display(\"level_"+data.level+"_td\")'></td></tr>";
 		}
 	}
 	ws_ladder_html += "</table>";
 	$('ws_ladder_content').update(ws_ladder_html);
-	
+	this.set_initial_level_display();
 	load_win.close_in(.25);
+}
+
+
+WSLocator.prototype.set_initial_level_display = function () {
+	//get cur ws level
+	var data = this.get_cur_ws_data();
+	var level = data.level;
+	//build ws id name
+	var name = "level_"+level+"_td";
+
+	//set style
+	$(name).setStyle({background: '#d28400'});
+	this.cur_level_display = $(name);
+}
+
+WSLocator.prototype.toggle_cur_level_display = function (name) {
+	if (this.cur_level_display)
+		this.cur_level_display.setStyle({background: '#ffffff'});
+	$(name).setStyle({background: '#d28400'});
+	this.cur_level_display = $(name);
 }
 
 WSLocator.prototype.get_cur_ws_lyr = function () {
@@ -968,6 +988,7 @@ LocationSelector.prototype.load_dialog = function (search_results) {
 	switch (search_results.type) {
 		case 'GeocoderResultSet':
 			sel_html = "<table cellspacing='8'>";
+			sel_html += "<tr><td colspan='2'>"+search_results.numLocations()+" matches returned";
 			for (var i=0; i<search_results.numLocations(); i++) {
 				var loc = search_results.getLocation(i);
 				var lng = loc.lng;
@@ -981,7 +1002,7 @@ LocationSelector.prototype.load_dialog = function (search_results) {
 
 				var max_extent = wsl.map.getMaxExtent();
 				var within_map = max_extent.containsLonLat(wsl.sphere_to_merc(lng,lat)); 
-				if (within_map) {
+				if (true) {
 					//Add selection entry
 					sel_html += "<tr>";
 					sel_html += "<td><input type='button' class='button' value='Select' id='"+i+"' onclick='wsl.location_selector.select(this.id); wsl.location_selector.close()'>";
@@ -1072,7 +1093,7 @@ LocationSelector.prototype.close = function () {
 function LoadWindow(){
 	this.msg_cont = "";
 	this.msg = "";
-	this.win = new Window({className: "bluelighting", width:300, height:120, zIndex: 100, resizable: false, title: "Status", showEffect: Effect.Appear, draggable:true})
+	this.win = new Window({className: "bluelighting", width:300, height:160, zIndex: 100, resizable: false, title: "Status", showEffect: Effect.Appear, draggable:true})
 
 	var me = this;
 	this.close_in = function (x) {
