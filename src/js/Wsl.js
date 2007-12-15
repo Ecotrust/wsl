@@ -1,8 +1,13 @@
 /****************************************************************************
  * WSLocator class
  *
- * Manages OL map, watershed WMS layers and watershed data requests
-/***************************************************************************/
+ * @copyright	2007 Ecotrust
+ * @author		Tim Welch
+ * @contact		twelch at ecotrust dot org
+ * @license		GNU GPL 2
+ *  
+ * @summary: 	manages map, searches and watershed data requests
+ ***************************************************************************/
 
 function WSLocator(){
 	this.bmap = null;
