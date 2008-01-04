@@ -828,7 +828,7 @@ WSLocator.prototype.gen_ws_stats_html = function (ws_level_data) {
 	ws_area = parseFloat(ws_level_data.shape_area).toFixed(3);	//3 decimal places
 	
 	//Put together current ws level stats
-	ws_html = "<table id='ws_stats_table_1'>";
+	ws_html = "<table class='ws_stats_table'>";
 	ws_html += "<tr><td align='right'><b>Name:</b></td><td>"+ws_level_data.name+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Level:</b></td><td>"+ws_level_data.level+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Perimeter (miles):</b></td><td>"+ws_leng+"</td></tr>";
@@ -836,18 +836,20 @@ WSLocator.prototype.gen_ws_stats_html = function (ws_level_data) {
 	ws_html += "<tr><td align='right'><b>Min. Elevation (feet):</b></td><td>"+ws_level_data.elev_min+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Max. Elevation (feet):</b></td><td>"+ws_level_data.elev_max+"</td></tr>";
 	ws_html += "</table>";
-	ws_html += "<table id='ws_stats_table_2'>";
-	ws_html += "<tr><td align='right'><b>Anadromous Streams (miles):</b></td><td>"+ws_level_data.stream_mil+"</td></tr>";
+	ws_html += "<table class='ws_stats_table'>";
 	ws_html += "<tr><td align='right'><b>Population:</b></td><td>"+ws_level_data.population+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Households:</b></td><td>"+ws_level_data.households+"</td></tr>";
-	ws_html += "<tr><td align='right'><b>Minor Dams:</b></td><td>"+ws_level_data.min_dams+"</td></tr>";
-	ws_html += "<tr><td align='right'><b>Major Dams:</b></td><td>"+ws_level_data.maj_dams+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Development (sq.miles):</b></td><td>"+ws_level_data.dev_sqmi+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Farmland (sq.miles):</b></td><td>"+ws_level_data.farm_sqmi+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Forestland (sq.miles):</b></td><td>"+ws_level_data.forest_sqm+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Native land (sq.miles):</b></td><td>"+ws_level_data.native_sqm+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Public land (sq.miles):</b></td><td>"+ws_level_data.public_sqm+"</td></tr>";
 	ws_html += "</table>";	
+	ws_html += "<table class='ws_stats_table'>";
+	ws_html += "<tr><td align='right'><b>Anadromous Streams (miles):</b></td><td>"+ws_level_data.stream_mil+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Minor Dams:</b></td><td>"+ws_level_data.min_dams+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Major Dams:</b></td><td>"+ws_level_data.maj_dams+"</td></tr>";
+	ws_html += "</table>";
 	return ws_html;
 }
 
