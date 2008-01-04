@@ -562,6 +562,17 @@ WSLocator.prototype.get_ws_lyr_data_by_location = function (lat, lng, region, ly
     });
 }
 
+//Query watershed data given its unique watershed id
+WSLocator.prototype.get_ws_lyr_data_by_id = function (id, region, lyr_num, callback) {
+    request = new OpenLayers.Ajax.Request('php/ws_search_proxy.php',
+    {
+            parameters: 'action=get&func=get_ws_lyr_data_by_id&id='+id+"&lyr_num="+lyr_num+"&region="+region,
+            method: 'get',
+            onSuccess: callback,
+            onFailure: this.default_fail
+    });
+}
+
 WSLocator.prototype.default_fail = function (response) {
 	load_win.append("<b>Request failed: "+response+"<br/>");
 }
@@ -773,7 +784,9 @@ WSLocator.prototype.level_change_event = function (new_ws_lyr_num) {
 		this.rem_cur_ws_wms_lyr();
 		this.cur_ws_lyr_num = new_ws_lyr_num;
 		//Fetch watershed data
-		this.get_ws_lyr_data_by_location(this.cur_search_result.lat, this.cur_search_result.lng, this.get_cur_region(), new_ws_lyr_num, this.finish_level_change_event);
+		//this.get_ws_lyr_data_by_location(this.cur_search_result.lat, this.cur_search_result.lng, this.get_cur_region(), new_ws_lyr_num, this.finish_level_change_event);
+		var new_ws_data = this.get_cur_ws_data();
+		this.get_ws_lyr_data_by_id(new_ws_data.id, this.get_cur_region(), new_ws_lyr_num, this.finish_level_change_event);
 	}
 }
 
@@ -792,6 +805,9 @@ WSLocator.prototype.do_finish_level_change_event = function (transport) {
 		
 	if (!ws_level_data) {
 		load_win.append("<b>Watershed search returned no results. Please try another level</b>");
+		return;
+	} else if (ws_level_data.error) {
+		load_win.append("<b>"+ws_level_data.error+"</b>");
 		return;
 	}
 
