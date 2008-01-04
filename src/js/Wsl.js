@@ -441,7 +441,8 @@ WSLocator.prototype.do_map_click_search = function (e) {
 	//this.map.events.unregister("click", this.map, this.map_click_search);
     var lonlat = wsl.map.getLonLatFromViewPortPx(e.xy);
 	lonlat = OpenLayers.Layer.SphericalMercator.inverseMercator(lonlat.lon, lonlat.lat);
-	var desc = "User selected location<br/>("+(lonlat.lon).toFixed(4)+","+(lonlat.lat).toFixed(4)+")";
+	var desc = "You selected ("+(lonlat.lon).toFixed(4)+","+(lonlat.lat).toFixed(4)+")";
+	load_win.set_msg_and_show(desc);
 	var click_loc = new SearchResult(desc, lonlat.lon, lonlat.lat);
 	this.location_search(click_loc);
 }
@@ -831,7 +832,7 @@ WSLocator.prototype.gen_ws_stats_html = function (ws_level_data) {
 	ws_html += "<tr><td align='right'><b>Name:</b></td><td>"+ws_level_data.name+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Level:</b></td><td>"+ws_level_data.level+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Perimeter (miles):</b></td><td>"+ws_leng+"</td></tr>";
-	ws_html += "<tr><td align='right'><b>Area (sq. miles):</b></td><td>"+ws_area+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Area (sq.miles):</b></td><td>"+ws_area+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Min. Elevation (feet):</b></td><td>"+ws_level_data.elev_min+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Max. Elevation (feet):</b></td><td>"+ws_level_data.elev_max+"</td></tr>";
 	ws_html += "</table>";
@@ -841,11 +842,11 @@ WSLocator.prototype.gen_ws_stats_html = function (ws_level_data) {
 	ws_html += "<tr><td align='right'><b>Households:</b></td><td>"+ws_level_data.households+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Minor Dams:</b></td><td>"+ws_level_data.min_dams+"</td></tr>";
 	ws_html += "<tr><td align='right'><b>Major Dams:</b></td><td>"+ws_level_data.maj_dams+"</td></tr>";
-	ws_html += "<tr><td align='right'><b>Development (sq. miles):</b></td><td>"+ws_level_data.dev_sqmi+"</td></tr>";
-	ws_html += "<tr><td align='right'><b>Farmland (sq. miles):</b></td><td>"+ws_level_data.farm_sqmi+"</td></tr>";
-	ws_html += "<tr><td align='right'><b>Forestland (sq. miles):</b></td><td>"+ws_level_data.forest_sqm+"</td></tr>";
-	ws_html += "<tr><td align='right'><b>Native land (sq. miles):</b></td><td>"+ws_level_data.native_sqm+"</td></tr>";
-	ws_html += "<tr><td align='right'><b>Public land (sq. miles):</b></td><td>"+ws_level_data.public_sqm+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Development (sq.miles):</b></td><td>"+ws_level_data.dev_sqmi+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Farmland (sq.miles):</b></td><td>"+ws_level_data.farm_sqmi+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Forestland (sq.miles):</b></td><td>"+ws_level_data.forest_sqm+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Native land (sq.miles):</b></td><td>"+ws_level_data.native_sqm+"</td></tr>";
+	ws_html += "<tr><td align='right'><b>Public land (sq.miles):</b></td><td>"+ws_level_data.public_sqm+"</td></tr>";
 	ws_html += "</table>";	
 	return ws_html;
 }
@@ -1134,6 +1135,7 @@ LoadWindow.prototype.set_msg_and_show = function (msg) {
 	this.set_msg(msg);
 	this.show();
 }
+
 
 LoadWindow.prototype.set_msg = function (msg) {
 	this.msg = msg;	
