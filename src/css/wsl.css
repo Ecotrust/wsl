@@ -1,29 +1,1 @@
-@CHARSET "ISO-8859-1";
-
-/****************************************************************************
- * WSLocator Stylesheet
- *
- * @copyright	2007 Ecotrust
- * @author		Tim Welch, Andrew Fuller
- * @contact		twelch at ecotrust dot org
- * @license		GNU GPL 2 (See LICENSE.TXT for the full license)
- ***************************************************************************/
-h1 { font-size: 1.8em; margin:0; }h2 { font-size: 1.6em; margin: 0 0 0.5em 0; }h3 { font-size: 1.4em; margin: 0 0 0.5em 0; }h4 { font-size: 1.2em; margin: 0 0 0.5em 0; }th { font-size: 0.85em; background-color: #fff; }#large_form_container {	border: 1px solid #ccc;	background:#f2f2f2;	padding: 8px;	margin: 0px 8px 8px 0px;	height: 530px;	width: 220px;	-moz-border-radius:8px;	border-radius:8px;	float:left;}
-#map_outer {
-	border: 1px solid #ccc;
-	background:#f2f2f2;
-	padding: 8px;
-	margin: 0px 8px 8px 0px;
-	-moz-border-radius:8px;
-	border-radius:8px;
-	float:left;
-}
-#map {	width: 530px;	height: 530px;}#ws_stats {	border: 1px solid #ccc; 	background:#f2f2f2;/*	height: 220px; */ 	width: 220px;	padding: 8px;	margin: 0px 8px 8px 0px;	-moz-border-radius:8px;	border-radius:8px;	float:left;}.ws_stats_table {	border: 1px solid #ccc;	background: #fff;	width: 100%;}#ws_ladder {	border: 1px solid #ccc;	background:#f2f2f2;	height: 220px;	width: 530px;	padding: 8px;	margin: 0px 8px 8px 0px;	-moz-border-radius:8px;	border-radius:8px;	float:left;}#ws_ladder_table {	border-collapse:collapse;	width: 100%;}#ws_ladder_table td, th {	border: 1px solid #ccc;	background: #fff;	padding: 4px;}#ws_name_suggest {	border: 1px solid #8FABFF; 	visibility:hidden; 	text-align: left;  	white-space: nowrap; 	background-color: #ddeaf1;	font: .85em Verdana, Arial, Helvetica, sans-serif;	padding: 2px;	position: absolute; 	top: 20px; 	left: 0px; 	height: 200px;	width: 250px;	z-index:25;	overflow: auto;}#ws_wrapper {	margin: 0;	padding: 0;	float:left;	width: 100%;	}
-
-#cur_level_reg {
-}
-
-#cur_level_hilite {
-	background-color: #d28400;
-	background: #d28400;
-}.suggestions { 	font-size: 14;	background-color: #ddeaf1;  }	.suggestionMouseOver { 	font-size: 14;	background: #d28400; 	color: white;  }
+@CHARSET "ISO-8859-1";/**************************************************************************** * WSLocator Stylesheet * * @copyright	2007 Ecotrust * @author		Tim Welch, Andrew Fuller * @contact		twelch at ecotrust dot org * @license		GNU GPL 2 (See LICENSE.TXT for the full license) ***************************************************************************/h1 { font-size: 1.8em; margin:0; }h2 { font-size: 1.6em; margin: 0 0 0.5em 0; }h3 { font-size: 1.4em; margin: 0 0 0.5em 0; }h4 { font-size: 1.2em; margin: 0 0 0.5em 0; }th { font-size: 0.85em; background-color: #fff; }#large_form_container {	border: 1px solid #ccc;	background:#f2f2f2;	padding: 8px;	margin: 0px 8px 8px 0px;	width: 120px;	-moz-border-radius:8px;	border-radius:8px;	float:left;}#map_outer {	border: 1px solid #ccc;	background:#f2f2f2;	padding: 8px;	margin: 0px 8px 8px 0px;	-moz-border-radius:8px;	border-radius:8px;	float:left;}#map {	width: 520px;	height: 520px;}#statsladder_outer {	padding: 0;	margin: 0;	float:left;}#ws_stats {	border: 1px solid #ccc; 	background:#f2f2f2;	width: 240px; /* for a 1024 screen in IE */	padding: 8px;	margin-bottom: 8px;	-moz-border-radius:8px;	border-radius:8px;}.ws_stats_table {	border: 1px solid #ccc;	background: #fff;	width: 100%;}#ws_ladder {	border: 1px solid #ccc;	background:#f2f2f2;	width: 240px;	padding: 8px;	margin: 0;	-moz-border-radius:8px;	border-radius:8px;}#ws_ladder_table {	border-collapse:collapse;	width: 100%;}#ws_ladder_table td, th {	border: 1px solid #ccc;	background: #fff;	padding: 4px;}#ws_name_suggest {	border: 1px solid #8FABFF; 	visibility:hidden; 	text-align: left;  	white-space: nowrap; 	background-color: #ddeaf1;	font: .85em Verdana, Arial, Helvetica, sans-serif;	padding: 2px;	position: absolute; 	top: 20px; 	left: 0px; 	height: 200px;	width: 250px;	z-index:25;	overflow: auto;}#ws_wrapper {	margin: 0;	padding: 0;	float:left;	width: 100%;	}#cur_level_reg {}#cur_level_hilite {	background-color: #d28400;	background: #d28400;}.suggestions { 	font-size: 14;	background-color: #ddeaf1;  }	.suggestionMouseOver { 	font-size: 14;	background: #d28400; 	color: white;  }
