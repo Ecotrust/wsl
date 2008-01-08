@@ -87,7 +87,7 @@ WSLocator.prototype.map_init = function() {
 
     //Google base map
     this.bmap = new OpenLayers.Layer.Google(
-        "Google Base Map",
+        "Google Terrain Base Layer",
         {
         	type: G_PHYSICAL_MAP,
  			'wrapDateLine':true,
@@ -106,7 +106,6 @@ WSLocator.prototype.map_init = function() {
 //    );
 
 	//SN boundary layer for initial load
-	//US Watershed WMS layers
 	this.sn_boundary = new OpenLayers.Layer.WMS.Untiled(
 		'Salmon Nation Boundary', 
 		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
@@ -118,7 +117,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 
 
@@ -137,7 +136,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 	this.ws_layers[0] = us_1_wms_lyr;
 
@@ -155,7 +154,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 	this.ws_layers[1] = us_2_wms_lyr;
 
@@ -173,7 +172,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 	this.ws_layers[2] = us_3_wms_lyr;
 
@@ -191,7 +190,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 	this.ws_layers[3] = us_4_wms_lyr; 
 
@@ -209,7 +208,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 	this.ws_layers[4] = us_5_wms_lyr;
 
@@ -227,7 +226,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 	this.ws_layers[5] = us_6_wms_lyr;
 
@@ -246,7 +245,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 	this.ws_layers[6] = bc_3_wms_lyr;
 
@@ -264,7 +263,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 	this.ws_layers[7] = bc_4_wms_lyr;
 
@@ -282,7 +281,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 	this.ws_layers[8] = bc_6_wms_lyr;
 
@@ -302,7 +301,7 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 	this.ws_layers[9] = yukon_3_wms_lyr;
 	
@@ -320,12 +319,25 @@ WSLocator.prototype.map_init = function() {
 		},
 		{
 			isBaseLayer: false, 
-			opacity: 0.4} 
+			opacity: 0.3} 
 	);
 	this.ws_layers[10] = yukon_4_wms_lyr;
 
+	this.us_pnw_streams_lyr = new OpenLayers.Layer.WMS.Untiled(
+		'US Pacific Northwest Streams', 
+		"http://pearl.ecotrust.org/cgi-bin/mapserv?map=/var/www/html/apps/wsl/wsl.map", 
+		{
+			layers: 'us_pnw_streams',
+			transparent: 'true',
+			format: 'image/gif',
+			srs: 'epsg:900913'
+		},
+		{
+			isBaseLayer: false, 
+			opacity: 0.7} 
+	);
 	this.markers = new OpenLayers.Layer.Markers("Your Location");
-	this.map.addLayers([this.bmap, this.sn_boundary, this.markers]);
+	this.map.addLayers([this.bmap, this.sn_boundary, this.us_pnw_streams_lyr, this.markers]);
 	this.lyr_switcher = new OpenLayers.Control.LayerSwitcher();	
 	this.map.addControl(this.lyr_switcher);
 	this.map.addControl(new OpenLayers.Control.MousePosition());
@@ -929,7 +941,7 @@ WSLocator.prototype.create_search_marker = function (search_loc) {
 	popup.setContentHTML(search_loc.description);
 	marker = feature.createMarker();
 	this.markers.addMarker(marker);
-	marker.events.register("mousedown", popup, this.marker_click);
+	marker.events.register("click", popup, this.marker_click);
 }
 
 //Convert spherical coordinates (wgs84) into mercator projects used
@@ -975,7 +987,7 @@ WSLocator.prototype.marker_click = function (evt) {
 		wsl.current_popup = this;
 		wsl.map.addPopup(this, true);
 	}
-	Event.stop(evt);
+	OpenLayers.Event.stop(evt);
 }
 
 WSLocator.prototype.clear_markers = function () {
