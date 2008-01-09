@@ -48,6 +48,7 @@ Geonamer.prototype.do_process_placename_search = function(transport) {
 	//Verify there is a result
 	if (!search_res) {
 		EventController.dispatchEvent("GeonameReturnEvent", new CustomEvent.Events.GeonameReturnEvent(geo_result_set));
+		return;
 	}
 	
 	//Load number of results
