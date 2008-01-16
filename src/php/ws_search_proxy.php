@@ -17,8 +17,11 @@
 require_once('HttpRequest.php');
 header('Content-type: text/html');
 
-ini_set("display_errors","2");
-ERROR_REPORTING(E_ALL);
+//ini_set("display_errors","2");
+//ERROR_REPORTING(E_ALL);
+
+//print "hello";
+//return;
 
 //Build the URL
 $URL = "http://pearl.ecotrust.org/apps/wsl/watershed_query.php";
