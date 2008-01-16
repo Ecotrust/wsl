@@ -14,6 +14,31 @@ function isArray(obj) {
       return true;
 }
 
+function numDecPlaces(num) {
+	decIndex = String(num).indexOf(".");
+	if (decIndex >= 0)
+		return String(num).length - decIndex;
+	else
+		return 0;	
+}
+
+function milesToKm(num) {
+	if (isNaN(parseFloat(num)))
+		return num;
+	if (numDecPlaces(num) == 0)
+		return parseInt(num*1.609);
+	else
+		return (parseFloat(num)*1.609).toFixed(1);
+}
+
+function feetToMeters(num) {
+	if (isNaN(parseFloat(num)))
+		return num;
+	if (numDecPlaces(num) == 0)
+		return parseInt(num*0.3048);
+	else
+		return (parseFloat(num)*0.3048).toFixed(1);
+}
 
 /* Copyright (c) 2006-2007 MetaCarta, Inc., published under the Clear BSD
  * license.  See http://svn.openlayers.org/trunk/openlayers/license.txt for the
