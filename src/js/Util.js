@@ -22,22 +22,40 @@ function numDecPlaces(num) {
 		return 0;	
 }
 
-function milesToKm(num) {
+function rnd_dec(num, places) {
 	if (isNaN(parseFloat(num)))
 		return num;
 	if (numDecPlaces(num) == 0)
-		return parseInt(num*1.609);
+		return num;
 	else
-		return (parseFloat(num)*1.609).toFixed(1);
+		return parseFloat(num).toFixed(places);
+}
+
+function milesToKm(num) {
+	if (isNaN(parseFloat(num)))
+		return num;
+	return num*1.609;
 }
 
 function feetToMeters(num) {
 	if (isNaN(parseFloat(num)))
 		return num;
-	if (numDecPlaces(num) == 0)
-		return parseInt(num*0.3048);
-	else
-		return (parseFloat(num)*0.3048).toFixed(1);
+	return num*0.3048
+}
+
+function addCommas(nStr)
+{
+	if (isNaN(parseFloat(nStr)))
+		return nStr;
+	nStr += '';
+	x = nStr.split('.');
+	x1 = x[0];
+	x2 = x.length > 1 ? '.' + x[1] : '';
+	var rgx = /(\d+)(\d{3})/;
+	while (rgx.test(x1)) {
+		x1 = x1.replace(rgx, '$1' + ',' + '$2');
+	}
+	return x1 + x2;
 }
 
 /* Copyright (c) 2006-2007 MetaCarta, Inc., published under the Clear BSD
