@@ -1,0 +1,566 @@
+#------------------------------------------ 
+# @copyright - 2007 Ecotrust
+# @author - Tim Welch, Aaron Racicot
+# @contact - twelch at ecotrust dot org
+#------------------------------------------
+
+MAP
+  NAME watershed_locator
+  STATUS ON
+
+  #EXTENT -126 38 -116 44
+  EXTENT -179.5 31 -116 72
+
+  SIZE 400 300
+  UNITS METERS
+
+  SHAPEPATH "/..../"
+  SYMBOLSET "/..../symbols.txt"
+  FONTSET /..../fonts.txt
+
+  IMAGETYPE gif
+  IMAGECOLOR 255 255 255
+
+  WEB
+    IMAGEPATH "/tmp/ms_temp/"
+    IMAGEURL "/tmp/ms_temp/"
+    METADATA
+      "wfs_title"            "Ecotrust Watershed Locator Server"  ## REQUIRED
+      "wfs_onlineresource"   "http://127.0.0.1/cgi-bin/mapserv.exe?"  ## Recommended
+      "wfs_srs"               "EPSG:4326 EPSG:900913"  ## Recommended
+
+      "wms_title" "Ecotrust Watershed Locator Server"
+      "wms_onlineresource" "http://pearl.ecotrust.org/cgi-bin/mapserv?"
+      "wms_srs" "epsg:4326 epsg:900913"
+    END
+  END
+ 
+  QUERYMAP
+    STATUS OFF
+    SIZE -1 -1 
+    COLOR 255 238 153
+    STYLE HILITE
+  END
+
+  #Everything should output in global mercator projection used by Google
+  #and other commercial mapping providers.  Projects on the fly if 
+  #necessary. requires defining 900913 in proj.4 epsg file
+
+  PROJECTION
+    "init=epsg:900913"
+  END
+
+  ####################### SN Boundary Layer ###########################
+
+  LAYER
+    NAME watershed_boundary
+    STATUS OFF
+    METADATA
+      "wfs_title"    "Watershed Boundary" ## REQUIRED
+      "wms_title"    "Watershed Boundary" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE POLYGON
+    PROJECTION
+      "init=epsg:900913"
+    END
+    CONNECTIONTYPE POSTGIS
+    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    DATA "the_geom from watershed_boundary"
+#    DATA "Watershed_Boundary.shp"
+    DUMP TRUE           ## REQUIRED
+    CLASS
+      NAME "Watershed Boundary"
+      STYLE
+        COLOR 255 221 153
+        OUTLINECOLOR 51 0 0
+      END
+    END
+  END # Layer
+
+  ####################### US Watershed Layers #########################
+
+  LAYER
+    NAME us_watersheds
+    STATUS OFF
+    METADATA
+      "wfs_title"    "U.S. 1st Field Watersheds" ## REQUIRED
+      "wms_title"    "U.S. 1st Field Watersheds" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE POLYGON
+    PROJECTION
+      "init=epsg:900913"
+    END
+    UNITS METERS
+    TOLERANCE 0
+    TOLERANCEUNITS PIXELS
+    CONNECTIONTYPE POSTGIS
+    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    DATA "the_geom from ( select * from %TABLE% W where gid = %GID%) as foo using unique gid"
+    TEMPLATE "ttt.html"
+    DUMP TRUE           ## REQUIRED
+    CLASS
+      NAME "Watershed"
+      STYLE
+        COLOR 255 221 153
+      END
+      STYLE
+        OUTLINECOLOR 51 0 0
+        SYMBOL "circle"
+	SIZE 2
+	ANTIALIAS TRUE
+      END
+    END
+  END # Layer
+
+  ####################### BC WS Layers #########################
+
+  LAYER
+    NAME bc_3rd_field_equivalent
+    STATUS OFF
+    METADATA
+      "wfs_title"    "B.C. (U.S. 3rd Field Equivalent) Watersheds" ## REQUIRED
+      "wms_title"    "B.C. (U.S. 3rd Field Equivalent) Watersheds" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE POLYGON
+    PROJECTION
+      "init=epsg:900913"
+    END
+    UNITS METERS
+    TOLERANCE 0
+    TOLERANCEUNITS PIXELS
+    CONNECTIONTYPE POSTGIS
+    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    DATA "the_geom from ( select * from bc_3rd_field_equivalent W where gid = %GID%) as foo using unique gid"
+    TEMPLATE "ttt.html"
+    DUMP TRUE           ## REQUIRED
+    CLASS
+      NAME "Watershed"
+      STYLE
+        COLOR 255 221 153
+        OUTLINECOLOR 51 0 0
+      END
+      #TEMPLATE "ttt_query.html"
+    END
+  END # Layer
+
+  LAYER
+    NAME bc_4th_field_equivalent
+    STATUS OFF
+    METADATA
+      "wfs_title"    "B.C. (U.S. 4th Field Equivalent) Watersheds" ## REQUIRED
+      "wms_title"    "B.C. (U.S. 4th Field Equivalent) Watersheds" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE POLYGON
+    PROJECTION
+      "init=epsg:900913"
+    END
+    UNITS METERS
+    TOLERANCE 0
+    TOLERANCEUNITS PIXELS
+    CONNECTIONTYPE POSTGIS
+    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    DATA "the_geom from ( select * from bc_4th_field_equivalent W where gid = %GID%) as foo using unique gid"
+    TEMPLATE "ttt.html"
+    DUMP TRUE           ## REQUIRED
+    CLASS
+      NAME "Watershed"
+      STYLE
+        COLOR 255 221 153
+        OUTLINECOLOR 51 0 0
+      END
+      #TEMPLATE "ttt_query.html"
+    END
+  END # Layer
+
+  LAYER
+    NAME bc_6th_field_equivalent
+    STATUS OFF
+    METADATA
+      "wfs_title"    "B.C. (U.S. 6th Field Equivalent) Watersheds" ## REQUIRED
+      "wms_title"    "B.C. (U.S. 6th Field Equivalent) Watersheds" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE POLYGON
+    PROJECTION
+      "init=epsg:900913"
+    END
+    UNITS METERS
+    TOLERANCE 0
+    TOLERANCEUNITS PIXELS
+    CONNECTIONTYPE POSTGIS
+    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    DATA "the_geom from ( select * from bc_6th_field_equivalent W where gid = %GID%) as foo using unique gid"
+    TEMPLATE "ttt.html"
+    DUMP TRUE           ## REQUIRED
+    CLASS
+      NAME "Watershed"
+      STYLE
+        COLOR 255 221 153
+        OUTLINECOLOR 51 0 0
+      END
+      #TEMPLATE "ttt_query.html"
+    END
+  END # Layer
+
+  ####################### Yukon WS Layers #########################
+
+  LAYER
+    NAME yukon_3rd_field_equivalent
+    STATUS OFF
+    METADATA
+      "wfs_title"    "Yukon (U.S. 3rd Field Equivalent) Watersheds" ## REQUIRED
+      "wms_title"    "Yukon (U.S. 3rd Field Equivalent) Watersheds" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE POLYGON
+    PROJECTION
+      "init=epsg:900913"
+    END
+    UNITS METERS
+    TOLERANCE 0
+    TOLERANCEUNITS PIXELS
+    CONNECTIONTYPE POSTGIS
+    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    DATA "the_geom from ( select * from yukon_3rd_field_equivalent W where gid = %GID%) as foo using unique gid"
+    TEMPLATE "ttt.html"
+    DUMP TRUE           ## REQUIRED
+    CLASS
+      NAME "Watershed"
+      STYLE
+        COLOR 255 221 153
+        OUTLINECOLOR 51 0 0
+      END
+      #TEMPLATE "ttt_query.html"
+    END
+  END # Layer
+
+  LAYER
+    NAME yukon_4th_field_equivalent
+    STATUS OFF
+    METADATA
+      "wfs_title"    "Yukon (U.S. 4th Field Equivalent) Watersheds" ## REQUIRED
+      "wms_title"    "Yukon (U.S. 4th Field Equivalent) Watersheds" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE POLYGON
+    PROJECTION
+      "init=epsg:900913"
+    END
+    UNITS METERS
+    TOLERANCE 0
+    TOLERANCEUNITS PIXELS
+    CONNECTIONTYPE POSTGIS
+    CONNECTION "user=XXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    DATA "the_geom from ( select * from yukon_4th_field_equivalent W where gid = %GID%) as foo using unique gid"
+    TEMPLATE "ttt.html"
+    DUMP TRUE           ## REQUIRED
+    CLASS
+      NAME "Watershed"
+      STYLE
+        COLOR 255 221 153
+        OUTLINECOLOR 51 0 0
+      END
+      #TEMPLATE "ttt_query.html"
+    END
+  END # Layer
+
+##################################### Rivers and Streams ################################
+
+  LAYER
+    NAME idaho_per_streams
+    STATUS OFF
+    METADATA
+      "wfs_title"    "Idaho Perennial Streams" ## REQUIRED
+      "wms_title"    "Idaho Perennial Streams" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE LINE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    DATA "Idaho.shp"
+    DUMP TRUE           ## REQUIRED
+    CLASSITEM "type"
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 500000
+      MINSCALE 250000
+      SYMBOL "circle"
+      COLOR 153 179 204
+      SIZE 1
+    END
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 249999
+      MINSCALE 14000
+      COLOR 153 179 204
+      SYMBOL "circle"
+      SIZE 2
+    END
+  END # Layer
+
+  LAYER
+    NAME wash_per_streams
+    STATUS OFF
+    METADATA
+      "wfs_title"    "Washington Perennial Streams" ## REQUIRED
+      "wms_title"    "Washington Perennial Streams" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE LINE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    DATA "washington.shp"
+    DUMP TRUE           ## REQUIRED
+    CLASSITEM "type"
+    CLASS
+      EXPRESSION "p"
+      MAXSCALE 500000
+      MINSCALE 250000
+      SYMBOL "circle"
+      COLOR 153 179 204
+      SIZE 1
+    END
+    CLASS
+      EXPRESSION "p"
+      MAXSCALE 249999
+      MINSCALE 14000
+      COLOR 153 179 204
+      SYMBOL "circle"
+      SIZE 2
+    END
+  END # Layer
+
+  LAYER
+    NAME ak_per_streams
+    STATUS OFF
+    METADATA
+      "wfs_title"    "Alaska Perennial Streams" ## REQUIRED
+      "wms_title"    "Alaska Perennial Streams" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE LINE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    DATA "Alaska.shp"
+    DUMP TRUE           ## REQUIRED
+    CLASSITEM "type"
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 500000
+      MINSCALE 250000
+      SYMBOL "circle"
+      COLOR 153 179 204
+      SIZE 1
+    END
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 249999
+      MINSCALE 14000
+      COLOR 153 179 204
+      SYMBOL "circle"
+      SIZE 2
+    END
+  END # Layer
+
+  LAYER
+    NAME or_per_streams
+    STATUS OFF
+    METADATA
+      "wfs_title"    "Oregon Perennial Streams" ## REQUIRED
+      "wms_title"    "Oregon Perennial Streams" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE LINE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    DATA "Oregon_Final.shp"
+    DUMP TRUE           ## REQUIRED
+    CLASSITEM "type"
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 500000
+      MINSCALE 250000
+      SYMBOL "circle"
+      COLOR 153 179 204
+      SIZE 1
+    END
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 249999
+      MINSCALE 14000
+      COLOR 153 179 204
+      SYMBOL "circle"
+      SIZE 2
+    END
+  END # Layer
+
+  LAYER
+    NAME cal_per_streams
+    STATUS OFF
+    METADATA
+      "wfs_title"    "California Perennial Streams" ## REQUIRED
+      "wms_title"    "California Perennial Streams" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE LINE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    DATA "California.shp"
+    DUMP TRUE           ## REQUIRED
+    CLASSITEM "type"
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 500000
+      MINSCALE 250000
+      SYMBOL "circle"
+      COLOR 153 179 204
+      SIZE 1
+    END
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 249999
+      MINSCALE 14000
+      COLOR 153 179 204
+      SYMBOL "circle"
+      SIZE 2
+    END
+  END # Layer
+
+  LAYER
+    NAME bc_per_streams
+    STATUS OFF
+    METADATA
+      "wfs_title"    "BC Perennial Streams" ## REQUIRED
+      "wms_title"    "BC Perennial Streams" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE LINE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    DATA "BC.shp"
+    DUMP TRUE           ## REQUIRED
+    CLASSITEM "type"
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 500000
+      MINSCALE 250000
+      SYMBOL "circle"
+      COLOR 153 179 204
+      SIZE 1
+    END
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 249999
+      MINSCALE 14000
+      COLOR 153 179 204
+      SYMBOL "circle"
+      SIZE 2
+    END
+  END # Layer
+
+  LAYER
+    NAME yukon_per_streams
+    STATUS OFF
+    METADATA
+      "wfs_title"    "Yukon Perennial Streams" ## REQUIRED
+      "wms_title"    "Yukon Perennial Streams" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE LINE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    DATA "Yukon.shp"
+    DUMP TRUE           ## REQUIRED
+    CLASSITEM "type"
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 500000
+      MINSCALE 250000
+      SYMBOL "circle"
+      COLOR 153 179 204
+      SIZE 1
+    END
+    CLASS
+      EXPRESSION "P"
+      MAXSCALE 249999
+      MINSCALE 14000
+      COLOR 153 179 204
+      SYMBOL "circle"
+      SIZE 2
+    END
+  END # Layer
+
+  LAYER
+    NAME major_rivers
+    STATUS OFF
+    METADATA
+      "wfs_title"    "Major Rivers" ## REQUIRED
+      "wms_title"    "Major Rivers" ## REQUIRED
+      "gml_featureid" "ID" ## REQUIRED
+      "gml_include_items" "all"  ## Optional (serves all attributes for layer)
+      "wfs_maxfeatures" "10"
+    END
+    TYPE LINE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    DATA "Major_Rivers.shp"
+    DUMP TRUE           ## REQUIRED
+    CLASS
+      MINSCALE 800000
+      MAXSCALE 7000000
+      COLOR 153 179 204
+      SYMBOL "circle"
+      SIZE 2
+    END
+    CLASS
+      MINSCALE 7000001
+      MAXSCALE 14000000
+      COLOR 153 179 204
+      SYMBOL "circle"
+      SIZE 1
+    END
+  END # Layer
+
+END # Map File
+
+
