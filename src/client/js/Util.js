@@ -43,8 +43,7 @@ function feetToMeters(num) {
 	return num*0.3048
 }
 
-function addCommas(nStr)
-{
+function addCommas(nStr) {
 	if (isNaN(parseFloat(nStr)))
 		return nStr;
 	nStr += '';
@@ -95,3 +94,26 @@ Util.updateParams = function(destination, source) {
     }
     return destination;
 };
+
+function isInteger (s) {
+	var i;
+	if (isEmpty(s))
+	if (isInteger.arguments.length == 1) 
+		return 0;
+	else 
+		return (isInteger.arguments[1] == true);
+	for (i = 0; i < s.length; i++) {
+	var c = s.charAt(i);
+	if (!isDigit(c)) 
+		return false;
+	}
+	return true;
+}
+
+function isEmpty(s) {
+	return ((s == null) || (s.length == 0))
+}
+
+function isDigit (c) {
+	return ((c >= "0") && (c <= "9"))
+}
