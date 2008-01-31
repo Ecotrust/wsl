@@ -1,11 +1,11 @@
 #------------------------------------------ 
 # @copyright - 2007 Ecotrust
-# @author - Tim Welch, Aaron Racicot
+# @author - Tim Welch
 # @contact - twelch at ecotrust dot org
 #------------------------------------------
 
 MAP
-  NAME watershed_locator
+  NAME watershed
   STATUS ON
 
   #EXTENT -126 38 -116 44
@@ -14,9 +14,9 @@ MAP
   SIZE 400 300
   UNITS METERS
 
-  SHAPEPATH "/..../"
-  SYMBOLSET "/..../symbols.txt"
-  FONTSET /..../fonts.txt
+  SHAPEPATH "/home/workspace/gis_data_pearl/project_data/wsl"
+  SYMBOLSET /var/www/html/apps/wsl/etc/symbols.sym
+  FONTSET /var/www/html/apps/wsl/etc/fonts.txt
 
   IMAGETYPE gif
   IMAGECOLOR 255 255 255
@@ -28,6 +28,7 @@ MAP
       "wfs_title"            "Ecotrust Watershed Locator Server"  ## REQUIRED
       "wfs_onlineresource"   "http://127.0.0.1/cgi-bin/mapserv.exe?"  ## Recommended
       "wfs_srs"               "EPSG:4326 EPSG:900913"  ## Recommended
+      "ows_schemas_location" "http://ogc.dmsolutions.ca"  ## Optional
 
       "wms_title" "Ecotrust Watershed Locator Server"
       "wms_onlineresource" "http://pearl.ecotrust.org/cgi-bin/mapserv?"
@@ -41,10 +42,6 @@ MAP
     COLOR 255 238 153
     STYLE HILITE
   END
-
-  #Everything should output in global mercator projection used by Google
-  #and other commercial mapping providers.  Projects on the fly if 
-  #necessary. requires defining 900913 in proj.4 epsg file
 
   PROJECTION
     "init=epsg:900913"
@@ -67,7 +64,7 @@ MAP
       "init=epsg:900913"
     END
     CONNECTIONTYPE POSTGIS
-    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    CONNECTION "user=twelch dbname=inforain host=localhost"
     DATA "the_geom from watershed_boundary"
 #    DATA "Watershed_Boundary.shp"
     DUMP TRUE           ## REQUIRED
@@ -100,7 +97,7 @@ MAP
     TOLERANCE 0
     TOLERANCEUNITS PIXELS
     CONNECTIONTYPE POSTGIS
-    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    CONNECTION "user=twelch dbname=inforain host=localhost"
     DATA "the_geom from ( select * from %TABLE% W where gid = %GID%) as foo using unique gid"
     TEMPLATE "ttt.html"
     DUMP TRUE           ## REQUIRED
@@ -138,7 +135,7 @@ MAP
     TOLERANCE 0
     TOLERANCEUNITS PIXELS
     CONNECTIONTYPE POSTGIS
-    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    CONNECTION "user=twelch dbname=inforain host=localhost"
     DATA "the_geom from ( select * from bc_3rd_field_equivalent W where gid = %GID%) as foo using unique gid"
     TEMPLATE "ttt.html"
     DUMP TRUE           ## REQUIRED
@@ -170,7 +167,7 @@ MAP
     TOLERANCE 0
     TOLERANCEUNITS PIXELS
     CONNECTIONTYPE POSTGIS
-    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    CONNECTION "user=twelch dbname=inforain host=localhost"
     DATA "the_geom from ( select * from bc_4th_field_equivalent W where gid = %GID%) as foo using unique gid"
     TEMPLATE "ttt.html"
     DUMP TRUE           ## REQUIRED
@@ -202,7 +199,7 @@ MAP
     TOLERANCE 0
     TOLERANCEUNITS PIXELS
     CONNECTIONTYPE POSTGIS
-    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    CONNECTION "user=twelch dbname=inforain host=localhost"
     DATA "the_geom from ( select * from bc_6th_field_equivalent W where gid = %GID%) as foo using unique gid"
     TEMPLATE "ttt.html"
     DUMP TRUE           ## REQUIRED
@@ -236,7 +233,7 @@ MAP
     TOLERANCE 0
     TOLERANCEUNITS PIXELS
     CONNECTIONTYPE POSTGIS
-    CONNECTION "user=XXXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    CONNECTION "user=twelch dbname=inforain host=localhost"
     DATA "the_geom from ( select * from yukon_3rd_field_equivalent W where gid = %GID%) as foo using unique gid"
     TEMPLATE "ttt.html"
     DUMP TRUE           ## REQUIRED
@@ -268,7 +265,7 @@ MAP
     TOLERANCE 0
     TOLERANCEUNITS PIXELS
     CONNECTIONTYPE POSTGIS
-    CONNECTION "user=XXXXXX dbname=YYYYYYY hostZZZZZZZ"
+    CONNECTION "user=twelch dbname=inforain host=localhost"
     DATA "the_geom from ( select * from yukon_4th_field_equivalent W where gid = %GID%) as foo using unique gid"
     TEMPLATE "ttt.html"
     DUMP TRUE           ## REQUIRED

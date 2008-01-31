@@ -131,7 +131,7 @@ switch($func) {
    $region = $_REQUEST['region'];
 
    //Validate
-   if (!isInt($id)) {
+   if (!isAlphNumSp($id)) {
      $error = "Invalid id";
    } else if (!isInt($lyr_num)) {
      $error = "Invalid layer number";
@@ -271,6 +271,8 @@ function search_ws_by_partial_name($name, $region) {
     break;
   }
 
+  $name = pg_escape_string($name);
+
   $sql = "SELECT gid, $name_field as name,
             x(centroid(the_geom)) as lng, 
             y(centroid(the_geom)) as lat
@@ -293,6 +295,8 @@ function search_ws_by_partial_name($name, $region) {
 /********************************* Other Functions **********************************/
 
 function check_if_in_ws_bound($lng, $lat) {
+  $lng = pg_escape_string($lng);
+  $lat = pg_escape_string($lat);
   $sql = "SELECT gid FROM
           watershed_boundary
           where WITHIN(transform(GeomFromText('POINT($lng $lat)',4326), 96), the_geom) LIMIT 1";
@@ -308,6 +312,8 @@ function check_if_in_ws_bound($lng, $lat) {
 }
 
 function check_if_in_us($lng, $lat) {
+  $lng = pg_escape_string($lng);
+  $lat = pg_escape_string($lat);
   $sql = "SELECT gid FROM
           us_watershed_outline
           where WITHIN(GeomFromText('POINT($lng $lat)',-1), the_geom) LIMIT 1";
@@ -322,6 +328,8 @@ function check_if_in_us($lng, $lat) {
 }
 
 function check_if_in_bc($lng, $lat) {
+  $lng = pg_escape_string($lng);
+  $lat = pg_escape_string($lat);
   $sql = "SELECT gid FROM
           bc_watershed_outline
           where WITHIN(GeomFromText('POINT($lng $lat)',-1), the_geom) LIMIT 1";
@@ -336,6 +344,8 @@ function check_if_in_bc($lng, $lat) {
 }
 
 function check_if_in_yukon($lng, $lat) {
+  $lng = pg_escape_string($lng);
+  $lat = pg_escape_string($lat);
   $sql = "SELECT gid FROM
           yukon_watershed_outline
           where WITHIN(GeomFromText('POINT($lng $lat)',-1), the_geom) LIMIT 1";
@@ -366,6 +376,9 @@ function get_initial_us_ws_data_by_location($lng, $lat) {
     $name = $us_ws_params[$i]['name'];
     $table = $us_ws_params[$i]['table'];
     $field_names = get_all_us_ws_id_fields_by_level($i);
+
+    $lng = pg_escape_string($lng);
+    $lat = pg_escape_string($lat);
 
     $sql = "select gid, $field_names, $name as name, 
           shape_leng, shape_area, stream_mil,
@@ -478,6 +491,9 @@ function get_us_ws_lyr_data_by_location($lng, $lat, $lyr_num) {
   $name = $us_ws_params[$lyr_num]['name'];
   $table = $us_ws_params[$lyr_num]['table'];
 
+  $lng = pg_escape_string($lng);
+  $lat = pg_escape_string($lat);
+
   $sql = "select gid, $name as name, shape_leng, shape_area,
           stream_mil, leed_sqft, 
           population, households, min_dams, maj_dams, 
@@ -509,6 +525,8 @@ function get_us_ws_lyr_data_by_id($id, $lyr_num) {
     $ws_data->error = "Invalid layer number for region";
     return $ws_data;
   }  
+
+  $id = pg_escape_string($id);
 
   $sql = "select gid, $name as name, shape_leng, shape_area,
           stream_mil, leed_sqft, 
@@ -550,6 +568,9 @@ function get_initial_bc_ws_data_by_location($lng, $lat) {
     $name = $bc_ws_params[$i]['name'];
     $table = $bc_ws_params[$i]['table'];
     $field_names = get_all_bc_ws_id_fields_by_level($i);
+
+    $lng = pg_escape_string($lng);
+    $lat = pg_escape_string($lat);
 
     //Get full field data for last available and id's for other levels
     $sql = "select gid, $field_names, $name as name, 
@@ -636,6 +657,9 @@ function get_bc_ws_lyr_data_by_location($lng, $lat, $lyr_num) {
   $name = $bc_ws_params[$lyr_num]['name'];
   $level = $bc_ws_params[$lyr_num]['level'];
 
+  $lng = pg_escape_string($lng);
+  $lat = pg_escape_string($lat);
+
   $sql = "select gid, $name as name,
           shape_leng, shape_area, stream_mil, road_mi,
           population, households, min_dams, maj_dams, 
@@ -670,6 +694,7 @@ function get_bc_ws_lyr_data_by_id($id, $lyr_num) {
   $name = $bc_ws_params[$lyr_num]['name'];
   $table = $bc_ws_params[$lyr_num]['table'];
   $part_id_field = $bc_ws_params[$lyr_num]['part_id_field'];
+  $id = pg_escape_string($id);
 
   $sql = "select gid, $name as name, shape_leng, shape_area,
           stream_mil, leed_sqft, 
@@ -717,6 +742,9 @@ function get_initial_yukon_ws_data_by_location($lng, $lat) {
     $name = $yukon_ws_params[$i]['name'];
     $table = $yukon_ws_params[$i]['table'];
     $field_names = get_all_yukon_ws_id_fields_by_level($i);
+
+    $lng = pg_escape_string($lng);
+    $lat = pg_escape_string($lat);
 
     //Get full field data for last available and id's for other levels
     $sql = "select gid, $field_names, $name as name, 
@@ -805,6 +833,9 @@ function get_yukon_ws_lyr_data_by_location($lng, $lat, $lyr_num) {
   $name = $yukon_ws_params[$lyr_num]['name'];
   $level = $yukon_ws_params[$lyr_num]['level'];
 
+  $lng = pg_escape_string($lng);
+  $lat = pg_escape_string($lat);
+
   $sql = "select gid, $name as name,
           shape_leng, shape_area, stream_mil, road_mi,
           population, households, min_dams, maj_dams, 
@@ -841,6 +872,8 @@ function get_yukon_ws_lyr_data_by_id($id, $lyr_num) {
   $name = $yukon_ws_params[$lyr_num]['name'];
   $table = $yukon_ws_params[$lyr_num]['table'];
   $part_id_field = $yukon_ws_params[$lyr_num]['part_id_field'];
+
+  $id = pg_escape_string($id);
 
   $sql = "select gid, $name as name, shape_leng, shape_area,
           stream_mil, leed_sqft, 
